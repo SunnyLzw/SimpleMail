@@ -2,9 +2,9 @@ object FormAbout: TFormAbout
   Left = 0
   Top = 0
   BorderStyle = bsDialog
-  Caption = 'FormAbout'
-  ClientHeight = 169
-  ClientWidth = 257
+  Caption = #20851#20110
+  ClientHeight = 210
+  ClientWidth = 288
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,8 +16,8 @@ object FormAbout: TFormAbout
   object Panel1: TPanel
     Left = 8
     Top = 8
-    Width = 241
-    Height = 121
+    Width = 271
+    Height = 161
     BevelKind = bkFlat
     BevelOuter = bvNone
     ParentColor = True
@@ -92,9 +92,9 @@ object FormAbout: TFormAbout
     object Label2: TLabel
       Left = 70
       Top = 29
-      Width = 78
+      Width = 83
       Height = 15
-      Caption = #29256#26412#65306'1.0.3.16'
+      Caption = #29256#26412#65306'1.0.4.22'
       IsControl = True
     end
     object Label3: TLabel
@@ -114,21 +114,39 @@ object FormAbout: TFormAbout
       WordWrap = True
       IsControl = True
     end
-    object LinkLabel1: TLinkLabel
+    object Label5: TLabel
       Left = 8
       Top = 94
-      Width = 225
+      Width = 224
+      Height = 15
+      Caption = #26412#31243#24207#20026#24320#28304#39033#30446#65292#28857#20987#36827#20837#39033#30446#20027#39029':'
+    end
+    object LinkLabel2: TLinkLabel
+      Left = 24
+      Top = 132
+      Width = 219
       Height = 19
       Caption = 
-        #26412#31243#24207#20026#24320#28304#39033#30446#65292#28857#20987#36827#20837'<a href="https://gitee.com/SunnyLzw/SimpleMail">'#39033#30446#20027 +
-        #39029'</a>'
+        '<a href="https://gitee.com/SunnyLzw/SimpleMail">https://gitee.co' +
+        'm/SunnyLzw/SimpleMail</a>'
       TabOrder = 0
-      OnLinkClick = LinkLabel1LinkClick
+      OnLinkClick = LinkLabelLinkClick
+    end
+    object LinkLabel1: TLinkLabel
+      Left = 24
+      Top = 115
+      Width = 228
+      Height = 19
+      Caption = 
+        '<a href="https://github.com/SunnyLzw/SimpleMail">https://github.' +
+        'com/SunnyLzw/SimpleMail</a>'
+      TabOrder = 1
+      OnLinkClick = LinkLabelLinkClick
     end
   end
   object Button1: TButton
-    Left = 90
-    Top = 135
+    Left = 103
+    Top = 177
     Width = 75
     Height = 25
     Caption = #30830#23450

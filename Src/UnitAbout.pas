@@ -16,9 +16,11 @@ type
     Label3: TLabel;
     Button1: TButton;
     Label4: TLabel;
+    LinkLabel2: TLinkLabel;
+    Label5: TLabel;
     LinkLabel1: TLinkLabel;
     procedure Button1Click(Sender: TObject);
-    procedure LinkLabel1LinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
+    procedure LinkLabelLinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
   private
     { Private declarations }
   public
@@ -40,7 +42,7 @@ begin
   Close;
 end;
 
-procedure TFormAbout.LinkLabel1LinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
+procedure TFormAbout.LinkLabelLinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
 begin
   ShellExecute(0, nil, PChar(Link), nil, nil, 1);
 end;
