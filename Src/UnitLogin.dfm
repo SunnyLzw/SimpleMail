@@ -63,6 +63,9 @@ object FormLogin: TFormLogin
       Top = 214
       Width = 24
       Height = 24
+      Hint = #20445#23384'Smtp'#37197#32622#25991#20214
+      ParentShowHint = False
+      ShowHint = True
       OnClick = ButtonSaveClick
     end
     object ButtonLoad: TSpeedButton
@@ -70,6 +73,9 @@ object FormLogin: TFormLogin
       Top = 214
       Width = 24
       Height = 24
+      Hint = #21152#36733'Smtp'#37197#32622#25991#20214
+      ParentShowHint = False
+      ShowHint = True
       OnClick = ButtonLoadClick
     end
     object EditDisplayName: TEdit

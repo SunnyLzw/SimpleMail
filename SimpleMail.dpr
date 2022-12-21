@@ -17,7 +17,8 @@ uses
   UnitSmtp in 'Src\UnitSmtp.pas' {DataModuleSmtp: TDataModule},
   UnitEncrypt in 'Src\UnitEncrypt.pas',
   UnitPlugin in 'Src\UnitPlugin.pas',
-  Plugin in 'Bin\Plugin\Plugin.pas';
+  Plugin in 'Bin\Plugin\Plugin.pas',
+  UnitAbout in 'Src\UnitAbout.pas' {FormAbout};
 
 {$R *.res}
 

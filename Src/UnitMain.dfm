@@ -348,6 +348,12 @@ object FormMain: TFormMain
         Action = ActionSettings
       end
     end
+    object NHelp: TMenuItem
+      Caption = #24110#21161'(&H)'
+      object AAbout: TMenuItem
+        Action = ActionAbout
+      end
+    end
   end
   object ActionListMenu: TActionList
     Left = 250
@@ -371,6 +377,10 @@ object FormMain: TFormMain
     object ActionClearAttachment: TAction
       Caption = #28165#31354#21015#34920'(&C)'
       OnExecute = ActionClearAttachmentExecute
+    end
+    object ActionAbout: TAction
+      Caption = #20851#20110'(&A)'
+      OnExecute = ActionAboutExecute
     end
   end
   object ActionListMain: TActionList

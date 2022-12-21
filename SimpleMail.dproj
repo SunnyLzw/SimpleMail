@@ -108,8 +108,8 @@
         <UWP_DelphiLogo150>Bin\Res\Icon.ico</UWP_DelphiLogo150>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Release>1</VerInfo_Release>
-        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <VerInfo_Build>2</VerInfo_Build>
+        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -139,6 +139,10 @@
         <DCCReference Include="Src\UnitEncrypt.pas"/>
         <DCCReference Include="Src\UnitPlugin.pas"/>
         <DCCReference Include="Bin\Plugin\Plugin.pas"/>
+        <DCCReference Include="Src\UnitAbout.pas">
+            <Form>FormAbout</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

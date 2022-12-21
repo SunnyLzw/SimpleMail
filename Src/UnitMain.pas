@@ -64,6 +64,9 @@ type
     Splitter2: TSplitter;
     Splitter3: TSplitter;
     ImageList1: TImageList;
+    NHelp: TMenuItem;
+    AAbout: TMenuItem;
+    ActionAbout: TAction;
     procedure PopupMenu1Popup(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ModifyMailData(Sender: TObject);
@@ -91,6 +94,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure StatusBarStateDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
     procedure ListBoxMailAddressKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ActionAboutExecute(Sender: TObject);
   private
     procedure WMGetMaxInfo(var Msg: TWMGetMinMaxInfo); message WM_GETMinMAXINFO;
     { Private declarations }
@@ -114,7 +118,7 @@ var
 implementation
 
 uses
-  Vcl.Imaging.pngimage, UnitSmtp, UnitImport, UnitSettings;
+  Vcl.Imaging.pngimage, UnitSmtp, UnitImport, UnitSettings, UnitAbout;
 {$R *.dfm}
 
 procedure TFormMain.PopupMenu1Popup(Sender: TObject);
@@ -194,6 +198,14 @@ begin
     Body := MemoBody.Text;
   end;
   DataModuleSmtp.ModifyMailData;
+end;
+
+procedure TFormMain.ActionAboutExecute(Sender: TObject);
+begin
+  FormAbout := TFormAbout.Create(nil);
+  FormAbout.ShowModal;
+  FormAbout.Free;
+  FormAbout := nil;
 end;
 
 procedure TFormMain.ActionClearAttachmentExecute(Sender: TObject);
