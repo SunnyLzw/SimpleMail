@@ -3,8 +3,8 @@ object FormAbout: TFormAbout
   Top = 0
   BorderStyle = bsDialog
   Caption = 'FormAbout'
-  ClientHeight = 160
-  ClientWidth = 209
+  ClientHeight = 168
+  ClientWidth = 258
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,12 +16,12 @@ object FormAbout: TFormAbout
   object Panel1: TPanel
     Left = 8
     Top = 8
-    Width = 193
-    Height = 113
+    Width = 241
+    Height = 121
     BevelKind = bkFlat
     BevelOuter = bvNone
     ParentColor = True
-    TabOrder = 0
+    TabOrder = 1
     object Image1: TImage
       Left = 8
       Top = -2
@@ -92,14 +92,14 @@ object FormAbout: TFormAbout
     object Label2: TLabel
       Left = 70
       Top = 29
-      Width = 91
+      Width = 72
       Height = 15
       Caption = #29256#26412#65306'1.0.1.1'
       IsControl = True
     end
     object Label3: TLabel
       Left = 8
-      Top = 63
+      Top = 52
       Width = 72
       Height = 15
       Caption = #29256#26435#65306'Sunny'
@@ -107,23 +107,34 @@ object FormAbout: TFormAbout
     end
     object Label4: TLabel
       Left = 8
-      Top = 84
+      Top = 73
       Width = 171
       Height = 15
       Caption = #32852#31995#26041#24335#65306'762467812@qq.com'
       WordWrap = True
       IsControl = True
     end
+    object LinkLabel1: TLinkLabel
+      Left = 8
+      Top = 94
+      Width = 225
+      Height = 19
+      Caption = 
+        #26412#31243#24207#20026#24320#28304#39033#30446#65292#28857#20987#36827#20837'<a href="https://gitee.com/SunnyLzw/SimpleMail">'#39033#30446#20027 +
+        #39029'</a>'
+      TabOrder = 0
+      OnLinkClick = LinkLabel1LinkClick
+    end
   end
   object Button1: TButton
-    Left = 67
-    Top = 127
+    Left = 90
+    Top = 135
     Width = 75
     Height = 25
     Caption = #30830#23450
     Default = True
     ModalResult = 1
-    TabOrder = 1
+    TabOrder = 0
     OnClick = Button1Click
   end
 end
