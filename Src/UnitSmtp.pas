@@ -44,7 +44,7 @@ type
     procedure ModifySettingsData;
     procedure ModifySmtpData;
     procedure ModifyMailData;
-    function Find(Address: string; var SendData: TSendData): Boolean;
+    function Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
     function SendAll: Integer;
     function SendAtToday: Integer;
   end;
@@ -83,16 +83,20 @@ begin
   if not TDirectory.Exists('.\Res') then
     TDirectory.CreateDirectory('.\Res');
 
-  FDConnection1.Open;
-  FDCreateInterface(IFDGUIxWaitCursor, IWait);
-
   UpdateSettingsData;
   UpdateSmtpData;
   UpdateMailData;
+  if not TFile.Exists('.\Config\Settings.ini') then
+    ModifySettingsData;
 
-  ModifyMailData;
-  ModifySmtpData;
-  ModifySettingsData;
+  if not TFile.Exists('.\Config\Smtp.ini') then
+    ModifySmtpData;
+
+  if not TFile.Exists('.\Config\Mail.ini') then
+    ModifyMailData;
+
+  FDConnection1.Open;
+  FDCreateInterface(IFDGUIxWaitCursor, IWait);
 end;
 
 procedure TDataModuleSmtp.DataModuleDestroy(Sender: TObject);
@@ -100,9 +104,10 @@ begin
   IdSMTP1.Disconnect;
 end;
 
-function TDataModuleSmtp.Find(Address: string; var SendData: TSendData): Boolean;
+function TDataModuleSmtp.Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
 var
   fs: TFormatSettings;
+  sd: TSendData;
 begin
   fs.LongDateFormat := 'yyyy-mm-dd';
   fs.ShortDateFormat := 'yyyy-mm-dd';
@@ -112,10 +117,13 @@ begin
   fs.TimeSeparator := ':';
   with FDQuery1 do
   begin
-    Open('Select * From ''' + TableName + ''' Where Address like ''' + Address.Replace('@', '_') + '''');
-    Result := RecordCount <> 0;
-    if Result then
-      with SendData do
+    Open('Select * From ''' + TableName + ''' Where Address like ''' + AAddress.Replace('@', '_') + '''');
+    ASendDataList := TSendDataList.Create;
+    ASendDataList.Count := RecordCount;
+    First;
+    Result := 0;
+    while not Eof do
+      with sd do
       begin
         State := ssError;
         if FieldByName('Success').AsWideString.ToBoolean then
@@ -125,6 +133,9 @@ begin
         ErrorCode := FieldByName('ErrorCode').AsInteger;
         ErrorText := FieldByName('ErrorText').AsWideString;
         Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
+        ASendDataList.Add(sd);
+        Inc(Result);
+        Next;
       end;
     Close;
   end;
@@ -292,6 +303,8 @@ begin
 end;
 
 function TDataModuleSmtp.Send(Address, DisplayName: string): TSendData;
+var
+  sdList: TSendDataList;
 begin
   if DisplayName.Trim = '' then
     DisplayName := Address.Remove(Address.IndexOf('@'));
@@ -302,25 +315,16 @@ begin
   with FDQuery1 do
   try
     IWait.StartWait;
-    if Find(Address, Result) then
+    if Find(Address, sdList) > 0 then
     begin
+      Result := sdList[sdList.Count - 1];
       if Result.State = ssSuccess then
       begin
         if not SettingsData.RepeatSend then
         begin
           Result.State := ssRepeat;
           Exit;
-        end
-        else
-        begin
-          SQL.Text := 'Delete From ' + TableName + ' Where Address like ''' + Address.Replace('@', '_') + '''';
-          ExecSQL;
         end;
-      end
-      else
-      begin
-        SQL.Text := 'Delete From ' + TableName + ' Where Address like ''' + Address.Replace('@', '_') + ''' and Success=''False''';
-        ExecSQL;
       end;
     end;
 

@@ -48,6 +48,8 @@ type
     Id, Path: string;
   end;
 
+  TSendDataList = TList<TSendData>;
+
   TSendLogList = TList<PSendLog>;
 
   TAttachmentDataList = TList<PAttachmentData>;
