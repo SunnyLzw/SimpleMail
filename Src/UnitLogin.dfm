@@ -80,7 +80,7 @@ object FormLogin: TFormLogin
     end
     object EditDisplayName: TEdit
       Left = 66
-      Top = 70
+      Top = 128
       Width = 145
       Height = 23
       TabOrder = 1
@@ -88,7 +88,7 @@ object FormLogin: TFormLogin
     end
     object EditHost: TEdit
       Left = 66
-      Top = 128
+      Top = 41
       Width = 145
       Height = 23
       TabOrder = 2
@@ -96,7 +96,7 @@ object FormLogin: TFormLogin
     end
     object EditPassword: TEdit
       Left = 66
-      Top = 41
+      Top = 70
       Width = 145
       Height = 23
       PasswordChar = '*'
