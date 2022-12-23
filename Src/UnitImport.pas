@@ -119,11 +119,17 @@ end;
 
 procedure TFormImport.Memo1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
-  col, line, size: Integer;
+  rect: TRect;
+  vSbi, hSbi: tagSCROLLBARINFO;
+  col, line, h, w: Integer;
 begin
+  rect := ClientToScreen(ClientRect);
+  vSbi.cbSize := SizeOf(vSbi);
+  hSbi.cbSize := SizeOf(hSbi);
+  GetScrollBarInfo(Memo1.Handle, Integer(OBJID_VSCROLL), vSbi);
+  GetScrollBarInfo(Memo1.Handle, Integer(OBJID_HSCROLL), hSbi);
   col := Memo1.CaretPos.X;
   line := Memo1.CaretPos.Y;
-  size := FormTips.ListBox1.Font.Size + 2;
   if col = 0 then
     Exit;
 
@@ -131,13 +137,16 @@ begin
   begin
     if Memo1.Lines[line].Trim <> '' then
     begin
-      FormTips.Top := Top + Trunc(Memo1.Top + line * size * 1.3) + 50;
-      if (FormTips.Top > Top + Memo1.BoundsRect.Bottom + 50) then
-        FormTips.Top := Top + Memo1.BoundsRect.Bottom + 50;
+      h := Canvas.TextHeight(Memo1.Lines[line]) * (line + 1);
+      w := Canvas.TextWidth(Memo1.Lines[line] + '@') + 2;
 
-      FormTips.Left := Left + Trunc(Memo1.Left + (col + 3) * size * 0.65);
-      if (FormTips.Left > Left + Memo1.BoundsRect.Right - 10) then
-        FormTips.Left := Left + Memo1.BoundsRect.Right - 10;
+      FormTips.Top := rect.Top + Memo1.BoundsRect.Top + h;
+      if (FormTips.Top > rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height) then
+        FormTips.Top := rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height;
+
+      FormTips.Left := rect.Left + Memo1.BoundsRect.Left + w;
+      if (FormTips.Left > rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width) then
+        FormTips.Left := rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width;
 
       FormTips.Show;
     end;
