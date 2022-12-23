@@ -14,6 +14,7 @@ type
     procedure ListBox1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure ListBox1MouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -26,8 +27,18 @@ var
 implementation
 
 uses
-  UnitImport;
+  System.IOUtils, UnitSmtp, UnitImport;
 {$R *.dfm}
+
+procedure TFormTips.FormCreate(Sender: TObject);
+begin
+  ListBox1.Items := DataModuleSmtp.Postfixs;
+
+  if ListBox1.Items.Count > 10 then
+    Height := 10 * ListBox1.ItemHeight + ListBox1.Margins.Top + ListBox1.Margins.Bottom
+  else
+    Height := ListBox1.Items.Count * ListBox1.ItemHeight + ListBox1.Margins.Top + ListBox1.Margins.Bottom;
+end;
 
 procedure TFormTips.FormShow(Sender: TObject);
 begin

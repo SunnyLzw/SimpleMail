@@ -38,6 +38,7 @@ type
     SettingsData: TSettingsData;
     SmtpData: TSmtpData;
     MailData: TMailData;
+    Postfixs: TStringList;
     function Login: Boolean;
     function Send(Address: string; DisplayName: string = ''): TSendData;
     procedure UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
@@ -51,6 +52,9 @@ type
 
 var
   DataModuleSmtp: TDataModuleSmtp;
+
+const
+  DefaultPostfixs: TArray<string> = ['qq.com', '126.com', '163.com', 'sina.com', 'gmail.com', 'foxmail.com', 'hotmail.com', 'outlook.com'];
 
 implementation
 
@@ -82,6 +86,15 @@ begin
 
   if not TDirectory.Exists('.\Res') then
     TDirectory.CreateDirectory('.\Res');
+
+  Postfixs := TStringList.Create;
+  if not TFile.Exists('.\Config\Postfixs.ini') then
+  begin
+    Postfixs.AddStrings(DefaultPostfixs);
+    Postfixs.SaveToFile('.\Config\Postfixs.ini', TEncoding.Unicode);
+  end
+  else
+    Postfixs.LoadFromFile('.\Config\Postfixs.ini', TEncoding.Unicode);
 
   UpdateSettingsData;
   UpdateSmtpData;
