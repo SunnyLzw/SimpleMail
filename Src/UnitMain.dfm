@@ -25,17 +25,15 @@ object FormMain: TFormMain
   object PanelMain: TPanel
     Left = 8
     Top = 8
-    Width = 764
+    Width = 772
     Height = 513
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 760
-    ExplicitHeight = 512
     object Splitter1: TSplitter
       Left = 0
       Top = 220
-      Width = 764
+      Width = 772
       Height = 3
       Cursor = crVSplit
       Align = alTop
@@ -47,14 +45,14 @@ object FormMain: TFormMain
     object PanelPrint: TPanel
       Left = 0
       Top = 0
-      Width = 764
+      Width = 772
       Height = 220
       Align = alTop
       BevelKind = bkFlat
       BevelOuter = bvNone
       ParentBackground = False
       TabOrder = 0
-      ExplicitWidth = 760
+      ExplicitWidth = 764
       object Splitter2: TSplitter
         Left = 150
         Top = 0
@@ -90,16 +88,16 @@ object FormMain: TFormMain
       object PanelLog: TPanel
         Left = 153
         Top = 0
-        Width = 607
+        Width = 615
         Height = 216
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitWidth = 603
+        ExplicitWidth = 607
         object ListView1: TListView
           Left = 0
           Top = 0
-          Width = 607
+          Width = 615
           Height = 216
           Align = alClient
           Columns = <
@@ -131,22 +129,23 @@ object FormMain: TFormMain
           OnCustomDrawItem = ListView1CustomDrawItem
           OnData = ListView1Data
           OnDeletion = ListView1Deletion
+          ExplicitWidth = 611
         end
       end
     end
     object PanelMessage: TPanel
       Left = 0
       Top = 223
-      Width = 764
+      Width = 772
       Height = 290
       Align = alClient
       BevelKind = bkFlat
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitWidth = 760
+      ExplicitWidth = 764
       ExplicitHeight = 289
       object Splitter3: TSplitter
-        Left = 449
+        Left = 457
         Top = 0
         Height = 286
         Align = alRight
@@ -160,15 +159,15 @@ object FormMain: TFormMain
       object PanelBody: TPanel
         Left = 0
         Top = 0
-        Width = 449
+        Width = 457
         Height = 286
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 445
+        ExplicitWidth = 449
         ExplicitHeight = 285
         DesignSize = (
-          449
+          457
           286)
         object Label1: TLabel
           Left = 0
@@ -187,17 +186,17 @@ object FormMain: TFormMain
         object EditSubject: TEdit
           Left = 38
           Top = 4
-          Width = 300
+          Width = 308
           Height = 22
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
           OnChange = ModifyMailData
-          ExplicitWidth = 296
+          ExplicitWidth = 300
         end
         object MemoBody: TMemo
           Left = 38
           Top = 32
-          Width = 404
+          Width = 412
           Height = 244
           Anchors = [akLeft, akTop, akRight, akBottom]
           ScrollBars = ssBoth
@@ -205,11 +204,11 @@ object FormMain: TFormMain
           WantTabs = True
           WordWrap = False
           OnChange = ModifyMailData
-          ExplicitWidth = 400
+          ExplicitWidth = 404
           ExplicitHeight = 243
         end
         object CheckBoxIsHtml: TCheckBox
-          Left = 346
+          Left = 354
           Top = 4
           Width = 97
           Height = 17
@@ -217,18 +216,18 @@ object FormMain: TFormMain
           Caption = #26159#21542'Html'#26684#24335
           TabOrder = 2
           OnClick = ModifyMailData
-          ExplicitLeft = 342
+          ExplicitLeft = 346
         end
       end
       object PanelAttachment: TPanel
-        Left = 452
+        Left = 460
         Top = 0
         Width = 308
         Height = 286
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 448
+        ExplicitLeft = 452
         ExplicitHeight = 285
         DesignSize = (
           308
