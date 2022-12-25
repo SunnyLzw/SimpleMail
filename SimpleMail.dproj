@@ -103,12 +103,12 @@
         <DCC_ExeOutput>.\Bin\</DCC_ExeOutput>
         <DCC_DcuOutput>.\Dcu\</DCC_DcuOutput>
         <Icon_MainIcon>Bin\Res\Icon.ico</Icon_MainIcon>
-        <VerInfo_Keys>CompanyName=Sunny;FileDescription=一个简单的邮件发送器;FileVersion=1.0.6.37;InternalName=$(MSBuildProjectName);LegalCopyright=Sunny;LegalTrademarks=Sunny;OriginalFilename=$(MSBuildProjectName).exe;ProgramID=Sunny.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=一个简单的邮件发送器</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Sunny;FileDescription=一个简单的邮件发送器;FileVersion=1.0.7.41;InternalName=$(MSBuildProjectName);LegalCopyright=Sunny;LegalTrademarks=Sunny;OriginalFilename=$(MSBuildProjectName).exe;ProgramID=Sunny.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=一个简单的邮件发送器</VerInfo_Keys>
         <UWP_DelphiLogo44>Bin\Res\Icon.ico</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>Bin\Res\Icon.ico</UWP_DelphiLogo150>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Release>6</VerInfo_Release>
-        <VerInfo_Build>37</VerInfo_Build>
+        <VerInfo_Release>7</VerInfo_Release>
+        <VerInfo_Build>41</VerInfo_Build>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     </PropertyGroup>
     <ItemGroup>
