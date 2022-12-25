@@ -7,13 +7,17 @@ uses
   Plugin;
 
 type
+  TPluginPair = TPair<HMODULE, PPluginData>;
+
   TPluginManager = class(TObject)
   protected
-    FPlugins: TList<TPair<HMODULE, PPluginData>>;
+    FPlugins: TList<TPluginPair>;
   public
     constructor Create;
     destructor Destroy; override;
     procedure EnumPlugin(APluginPath: string);
+  public
+    property Plugins: TList<TPluginPair> read FPlugins;
   end;
 
 implementation
@@ -22,13 +26,13 @@ implementation
 
 constructor TPluginManager.Create;
 begin
-  EnumPlugin('.\Plugins');
+  EnumPlugin('.\Plugin');
 end;
 
 destructor TPluginManager.Destroy;
 begin
-  for var i in FPlugins do
-    CloseHandle(i.Key);
+//  for var i in FPlugins do
+//    CloseHandle(i.Key);
 
   FPlugins.Free;
   inherited;
@@ -36,27 +40,27 @@ end;
 
 procedure TPluginManager.EnumPlugin(APluginPath: string);
 begin
-  FPlugins := TList<TPair<HMODULE, PPluginData>>.Create;
+  FPlugins := TList<TPluginPair>.Create;
   if not DirectoryExists(APluginPath) then
     Exit;
 
-  var fs := TDirectory.GetFiles(APluginPath, '*.dll|*.bpl');
+  var fs := TDirectory.GetFiles(APluginPath, '*.dll');
   for var i in fs do
   begin
-    var p: TPair<HMODULE, PPluginData>;
+    var p: TPluginPair;
     p.Key := LoadLibrary(PChar(i));
     if p.Key <= 0 then
       Continue;
 
     var proc := GetProcAddress(p.Key, 'GetPlugin');
-    if Assigned(proc) then
+    if not Assigned(proc) then
     begin
       CloseHandle(p.Key);
       Continue;
     end;
 
     p.Value := TGetPlugin(proc);
-    if Assigned(p.Value) then
+    if not Assigned(p.Value) then
     begin
       CloseHandle(p.Key);
       Continue;

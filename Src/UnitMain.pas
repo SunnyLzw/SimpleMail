@@ -3,10 +3,10 @@ unit UnitMain;
 interface
 
 uses
-  UnitType, Winapi.Windows, System.IOUtils, Winapi.Messages, System.SysUtils,
-  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Menus, Vcl.StdCtrls,
-  Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ActnList, Vcl.Dialogs, Vcl.ExtDlgs,
-  Vcl.ImgList, System.ImageList, System.Actions;
+  UnitType, Plugin, UnitPlugin, Winapi.Windows, System.IOUtils, Winapi.Messages,
+  System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
+  Vcl.Menus, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ActnList, Vcl.Dialogs,
+  Vcl.ExtDlgs, Vcl.ImgList, System.ImageList, System.Actions;
 
 type
   TSend = class(TThread)
@@ -96,10 +96,12 @@ type
     procedure ListBoxMailAddressKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ActionAboutExecute(Sender: TObject);
   private
-    procedure WMGetMaxInfo(var Msg: TWMGetMinMaxInfo); message WM_GETMinMAXINFO;
     { Private declarations }
+    procedure WMGetMaxInfo(var Msg: TWMGetMinMaxInfo); message WM_GETMinMAXINFO;
+    procedure PluginOnClick(Sender: TObject);
   public
     { Public declarations }
+    PluginManager: TPluginManager;
     LogList: TSendLogList;
     AttachmentList: TAttachmentDataList;
     Send: TSend;
@@ -442,11 +444,69 @@ begin
     Send.Terminate;
 end;
 
+procedure TFormMain.PluginOnClick(Sender: TObject);
+begin
+  TExecute((Sender as TMenuItem).Tag);
+end;
+
 procedure TFormMain.FormCreate(Sender: TObject);
+var
+  item: TPluginPair;
+  mi, pmi, nmi: TMenuItem;
 begin
   Caption := DataModuleSmtp.SmtpData.Username;
   LogList := TSendLogList.Create;
   AttachmentList := TAttachmentDataList.Create;
+  PluginManager := TPluginManager.Create;
+  for item in PluginManager.Plugins do
+  begin
+    pmi := nil;
+
+    if item.Value.ParentIndex > 0 then
+    begin
+      if item.Value.ParentIndex < MainMenu.Items.Count then
+      begin
+        if item.Value.ParentName.Trim = '' then
+          pmi := MainMenu.Items[item.Value.ParentIndex]
+        else
+        begin
+          pmi := TMenuItem.Create(MainMenu);
+          pmi.Caption := item.Value.ParentName;
+          MainMenu.Items.Insert(item.Value.ParentIndex, pmi);
+        end;
+      end;
+    end
+    else
+    begin
+      for mi in MainMenu.Items do
+      begin
+        if mi.Caption = item.Value.ParentName then
+        begin
+          pmi := mi;
+          Break;
+        end;
+      end;
+    end;
+
+    if not Assigned(pmi) then
+    begin
+      pmi := TMenuItem.Create(MainMenu);
+      if item.Value.ParentName.Trim = '' then
+        pmi.Caption := '²å¼þ(&P)'
+      else
+        pmi.Caption := item.Value.ParentName;
+      MainMenu.Items.Add(pmi);
+    end;
+
+    nmi := TMenuItem.Create(pmi);
+    nmi.Caption := item.Value.Name;
+    nmi.Hint := item.Value.Hint;
+    nmi.OnClick := PluginOnClick;
+    nmi.Tag := NativeInt(@item.Value.Functions.Execute);
+    item.Value.Functions.SetMainForm(Self);
+    MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(nmi);
+  end;
+
   if TFile.Exists('.\Res\State.png') then
   begin
     var png: TPngImage;
@@ -496,6 +556,8 @@ begin
     Dispose(i);
   end;
   AttachmentList.Free;
+
+  PluginManager.Free;
 end;
 
 procedure TFormMain.FormShow(Sender: TObject);
