@@ -3,21 +3,26 @@ unit UnitPlugin;
 interface
 
 uses
-  Winapi.Windows, System.SysUtils, System.Generics.Collections, System.IOUtils,
-  Plugin;
+  System.Classes, Winapi.Windows, System.SysUtils, System.Generics.Collections,
+  System.IOUtils, Plugin;
 
 type
-  TPluginPair = TPair<HMODULE, PPluginData>;
+  TPluginObject = record
+    ModuleHandle: HMODULE;
+    PluginObject: TPlugin;
+    PluginInterface: IPlugin;
+    PluginData: TPluginData;
+  end;
 
   TPluginManager = class(TObject)
   protected
-    FPlugins: TList<TPluginPair>;
+    FPlugins: TList<TPluginObject>;
   public
     constructor Create;
     destructor Destroy; override;
     procedure EnumPlugin(APluginPath: string);
   public
-    property Plugins: TList<TPluginPair> read FPlugins;
+    property Plugins: TList<TPluginObject> read FPlugins;
   end;
 
 implementation
@@ -40,33 +45,44 @@ end;
 
 procedure TPluginManager.EnumPlugin(APluginPath: string);
 begin
-  FPlugins := TList<TPluginPair>.Create;
+  FPlugins := TList<TPluginObject>.Create;
   if not DirectoryExists(APluginPath) then
     Exit;
 
-  var fs := TDirectory.GetFiles(APluginPath, '*.dll');
+  var fs := TDirectory.GetFiles(APluginPath, '*.bpl');
   for var i in fs do
   begin
-    var p: TPluginPair;
-    p.Key := LoadLibrary(PChar(i));
-    if p.Key <= 0 then
+    var po: TPluginObject;
+    po.ModuleHandle := LoadPackage(i);
+    if po.ModuleHandle <= 0 then
       Continue;
 
-    var proc := GetProcAddress(p.Key, 'GetPlugin');
-    if not Assigned(proc) then
+    var str := ExtractFileName(i);
+    str := 'TPlugin' + str.Remove(str.IndexOf('.'));
+    var c := FindClass(str);
+    if not Assigned(c) then
     begin
-      CloseHandle(p.Key);
+      UnloadPackage(po.ModuleHandle);
       Continue;
     end;
 
-    p.Value := TGetPlugin(proc);
-    if not Assigned(p.Value) then
+    po.PluginObject := TPlugin(c.Create);
+    if not Assigned(po.PluginObject) then
     begin
-      CloseHandle(p.Key);
+      UnloadPackage(po.ModuleHandle);
       Continue;
     end;
 
-    FPlugins.Add(p);
+    Supports(po.PluginObject, StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), po.PluginInterface);
+    if not Assigned(po.PluginInterface) then
+    begin
+      UnloadPackage(po.ModuleHandle);
+      Continue;
+    end;
+
+    po.PluginInterface.Execute;
+    po.PluginData := po.PluginInterface.GetPluginData;
+    FPlugins.Add(po);
   end;
 end;
 

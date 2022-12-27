@@ -446,12 +446,16 @@ end;
 
 procedure TFormMain.PluginOnClick(Sender: TObject);
 begin
-  TExecute((Sender as TMenuItem).Tag);
+  var pi := IPlugin((Sender as TMenuItem).Tag);
+  if pi.GetPluginData.CanChecked then
+    pi.OnChecked
+  else
+    pi.OnClick;
 end;
 
 procedure TFormMain.FormCreate(Sender: TObject);
 var
-  item: TPluginPair;
+  item: TPluginObject;
   mi, pmi, nmi: TMenuItem;
 begin
   Caption := DataModuleSmtp.SmtpData.Username;
@@ -462,17 +466,17 @@ begin
   begin
     pmi := nil;
 
-    if item.Value.ParentIndex > 0 then
+    if item.PluginData.ParentIndex > 0 then
     begin
-      if item.Value.ParentIndex < MainMenu.Items.Count then
+      if item.PluginData.ParentIndex < MainMenu.Items.Count then
       begin
-        if item.Value.ParentName.Trim = '' then
-          pmi := MainMenu.Items[item.Value.ParentIndex]
+        if item.PluginData.ParentName.Trim = '' then
+          pmi := MainMenu.Items[item.PluginData.ParentIndex]
         else
         begin
           pmi := TMenuItem.Create(MainMenu);
-          pmi.Caption := item.Value.ParentName;
-          MainMenu.Items.Insert(item.Value.ParentIndex, pmi);
+          pmi.Caption := item.PluginData.ParentName;
+          MainMenu.Items.Insert(item.PluginData.ParentIndex, pmi);
         end;
       end;
     end
@@ -480,7 +484,7 @@ begin
     begin
       for mi in MainMenu.Items do
       begin
-        if mi.Caption = item.Value.ParentName then
+        if mi.Caption = item.PluginData.ParentName then
         begin
           pmi := mi;
           Break;
@@ -491,20 +495,37 @@ begin
     if not Assigned(pmi) then
     begin
       pmi := TMenuItem.Create(MainMenu);
-      if item.Value.ParentName.Trim = '' then
-        pmi.Caption := '²å¼þ(&P)'
+      if item.PluginData.ParentName.Trim = '' then
+      begin
+        pmi.Caption := '²å¼þ(&P)';
+        MainMenu.Items.Insert(2, pmi);
+      end
       else
-        pmi.Caption := item.Value.ParentName;
-      MainMenu.Items.Add(pmi);
+      begin
+        pmi.Caption := item.PluginData.ParentName;
+        MainMenu.Items.Add(pmi);
+      end;
     end;
 
-    nmi := TMenuItem.Create(pmi);
-    nmi.Caption := item.Value.Name;
-    nmi.Hint := item.Value.Hint;
+    repeat
+      nmi := TMenuItem.Create(MainMenu);
+      MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(nmi);
+      if item.PluginData.GroupName.Trim = '' then
+        Break;
+
+      nmi.Caption := item.PluginData.GroupName;
+      nmi := TMenuItem.Create(MainMenu);
+      pmi.Items[0].Add(nmi);
+    until True;
+
+    nmi.Caption := item.PluginData.Name;
+    nmi.Hint := item.PluginData.Hint;
     nmi.OnClick := PluginOnClick;
-    nmi.Tag := NativeInt(@item.Value.Functions.Execute);
-    item.Value.Functions.SetMainForm(Self);
-    MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(nmi);
+    nmi.Tag := NativeInt(item.PluginInterface);
+    item.PluginInterface.SetMainMenu(MainMenu);
+    item.PluginInterface.SetMenuItem(nmi);
+    if item.PluginData.HasWindow then
+      item.PluginInterface.SetMainForm(Self);
   end;
 
   if TFile.Exists('.\Res\State.png') then
@@ -525,6 +546,7 @@ begin
   begin
     CheckBoxIsHtml.Checked := IsHtml;
     var sl := TStringList.Create;
+    sl.Delimiter := ';';
     sl.DelimitedText := Attachments;
     AddAttachments(sl);
     EditSubject.Text := Subject;
