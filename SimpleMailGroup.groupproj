@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{1355E7D3-22DA-4961-B4F0-7AFEB80DD934}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="SimpleMail\SimpleMail.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Plugin\Plugin.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="SimpleMail">
+        <MSBuild Projects="SimpleMail\SimpleMail.dproj"/>
+    </Target>
+    <Target Name="SimpleMail:Clean">
+        <MSBuild Projects="SimpleMail\SimpleMail.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SimpleMail:Make">
+        <MSBuild Projects="SimpleMail\SimpleMail.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Plugin">
+        <MSBuild Projects="Plugin\Plugin.dproj"/>
+    </Target>
+    <Target Name="Plugin:Clean">
+        <MSBuild Projects="Plugin\Plugin.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Plugin:Make">
+        <MSBuild Projects="Plugin\Plugin.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="SimpleMail;Plugin"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="SimpleMail:Clean;Plugin:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="SimpleMail:Make;Plugin:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
