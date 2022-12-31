@@ -16,9 +16,13 @@
 
 资源文件夹，可以删除和替换，但是某些组件可能无法显示图片
 
-### .\Bin\Plugin
+### .\Bin\Plugins
 
-插件目录，暂未使用
+插件目录
+
+### .\Bin\Plugins\Plugin
+
+插件开发框架目录
 
 ### .\Bin\libeay32.dll
 
