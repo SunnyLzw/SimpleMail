@@ -3,8 +3,8 @@ object FormLogin: TFormLogin
   Top = 0
   BorderStyle = bsDialog
   Caption = #30331#24405
-  ClientHeight = 260
-  ClientWidth = 242
+  ClientHeight = 258
+  ClientWidth = 243
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -14,6 +14,7 @@ object FormLogin: TFormLogin
   Font.Style = []
   Position = poMainFormCenter
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   TextHeight = 15
   object PanelMain: TPanel
     Left = 8

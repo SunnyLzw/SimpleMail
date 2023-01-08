@@ -3,7 +3,7 @@ unit UnitAbout;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  UnitType, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Controls,
   Vcl.Imaging.pngimage;
 
@@ -27,8 +27,15 @@ type
     { Public declarations }
   end;
 
-var
-  FormAbout: TFormAbout;
+  TAbout = class(TInterfacedPersistent, IForm, IDialog)
+  private
+    FFormAbout: TFormAbout;
+  public
+    procedure Create;
+    procedure Destroy; reintroduce;
+    function GetObject: TObject;
+    function Show: TObject;
+  end;
 
 implementation
 
@@ -46,6 +53,37 @@ procedure TFormAbout.LinkLabelLinkClick(Sender: TObject; const Link: string; Lin
 begin
   ShellExecute(0, nil, PChar(Link), nil, nil, 1);
 end;
+
+{ TAbout }
+
+procedure TAbout.Create;
+begin
+  FFormAbout := TFormAbout.Create(Application);
+end;
+
+procedure TAbout.Destroy;
+begin
+  FFormAbout.Free;
+  FFormAbout := nil;
+end;
+
+function TAbout.GetObject: TObject;
+begin
+  Result := FFormAbout;
+end;
+
+function TAbout.Show: TObject;
+begin
+  FFormAbout.ShowModal;
+  Result := TObject(FFormAbout.ModalResult = mrOk);
+end;
+
+initialization
+  RegisterClass(TAbout);
+
+
+finalization
+  UnRegisterClass(TAbout);
 
 end.
 

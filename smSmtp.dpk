@@ -28,13 +28,51 @@ package smSmtp;
 {$IMPLICITBUILD ON}
 
 requires
-  smType,
-  smEncrypt,
   smBase,
   rtl;
 
 contains
-  UnitSmtp in 'Src\UnitSmtp.pas' {DataModuleSmtp: TDataModule};
+  UnitSmtp in 'Src\UnitSmtp.pas' {DataModuleSmtp: TDataModule},
+  FireDAC.UI.Intf,
+  FireDAC.Stan.Param,
+  Data.DB,
+  FireDAC.Comp.DataSet,
+  FireDAC.Comp.Client,
+  IdBaseComponent,
+  IdSSLOpenSSL,
+  FireDAC.Phys.SQLite,
+  FireDAC.Comp.UI,
+  IdMessage,
+  IdTCPConnection,
+  IdTCPClient,
+  IdExplicitTLSClientServerBase,
+  IdMessageClient,
+  IdSMTP,
+  IdSMTPBase,
+  IdIOHandlerSocket,
+  IdIOHandlerStack,
+  IdSSL,
+  FireDAC.Stan.Intf,
+  FireDAC.Stan.Option,
+  FireDAC.Stan.Error,
+  FireDAC.Phys.Intf,
+  FireDAC.Stan.Def,
+  FireDAC.Stan.Pool,
+  FireDAC.Stan.Async,
+  FireDAC.Phys,
+  FireDAC.Phys.SQLiteDef,
+  FireDAC.Stan.ExprFuncs,
+  FireDAC.DatS,
+  FireDAC.DApt.Intf,
+  FireDAC.DApt,
+  FireDAC.Phys.SQLiteWrapper.Stat,
+  FireDAC.VCLUI.Wait,
+  IdComponent,
+  IdIOHandler,
+  IdMessageBuilder,
+  IdReplySmtp,
+  IdExceptionCore,
+  FireDAC.Stan.Factory;
 
 end.
 

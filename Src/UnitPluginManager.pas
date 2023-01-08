@@ -7,31 +7,32 @@ uses
   System.IOUtils, UnitPluginFrame;
 
 type
+  PPluginObject = ^TPluginObject;
+
   TPluginObject = record
     ModuleHandle: HMODULE;
-    PluginObject: TPlugin;
     PluginInterface: IPlugin;
     PluginData: TPluginData;
   end;
 
   TPluginManager = class(TObject)
   protected
-    FPlugins: TList<TPluginObject>;
+    FPlugins: TList<PPluginObject>;
   public
-    constructor Create;
+    constructor Create(APluginPath: string);
     destructor Destroy; override;
     procedure EnumPlugin(APluginPath: string);
   public
-    property Plugins: TList<TPluginObject> read FPlugins;
+    property Plugins: TList<PPluginObject> read FPlugins;
   end;
 
 implementation
 
 { TPluginManager }
 
-constructor TPluginManager.Create;
+constructor TPluginManager.Create(APluginPath: string);
 begin
-  EnumPlugin('.\Plugins');
+  EnumPlugin(APluginPath);
 end;
 
 destructor TPluginManager.Destroy;
@@ -39,7 +40,9 @@ begin
   for var i in FPlugins do
   begin
     i.PluginInterface.OnUnLoad;
+    i.PluginInterface := nil;
     UnloadPackage(i.ModuleHandle);
+    Dispose(i);
   end;
 
   FPlugins.Free;
@@ -48,14 +51,15 @@ end;
 
 procedure TPluginManager.EnumPlugin(APluginPath: string);
 begin
-  FPlugins := TList<TPluginObject>.Create;
+  FPlugins := TList<PPluginObject>.Create;
   if not DirectoryExists(APluginPath) then
     Exit;
 
   var fs := TDirectory.GetFiles(APluginPath, '*.bpl');
   for var i in fs do
   begin
-    var po: TPluginObject;
+    var po: PPluginObject;
+    New(po);
     po.ModuleHandle := LoadPackage(i);
     if po.ModuleHandle <= 0 then
       Continue;
@@ -69,14 +73,7 @@ begin
       Continue;
     end;
 
-    po.PluginObject := TPlugin(c.Create);
-    if not Assigned(po.PluginObject) then
-    begin
-      UnloadPackage(po.ModuleHandle);
-      Continue;
-    end;
-
-    Supports(po.PluginObject, StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), po.PluginInterface);
+    Supports(TPlugin(c.Create), StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), po.PluginInterface);
     if not Assigned(po.PluginInterface) then
     begin
       UnloadPackage(po.ModuleHandle);

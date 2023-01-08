@@ -29,14 +29,10 @@ package smMain;
 {$IMPLICITBUILD ON}
 
 requires
-  smType,
-  smSmtp,
-  smImport,
-  smSettings,
-  smAbout,
-  smPluginFrame,
-  smPluginManager,
-  rtl;
+  smBase,
+  smPlugin,
+  rtl,
+  vclimg;
 
 contains
   UnitMain in 'Src\UnitMain.pas' {FormMain};

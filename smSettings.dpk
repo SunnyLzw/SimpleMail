@@ -29,10 +29,7 @@ package smSettings;
 {$IMPLICITBUILD ON}
 
 requires
-  smType,
   smBase,
-  smSmtp,
-  smLogin,
   rtl,
   VclSmp;
 

@@ -3,12 +3,12 @@ unit UnitImport;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls;
+  UnitType, UnitPackage, Winapi.Windows, Winapi.Messages, System.SysUtils,
+  System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
+  Vcl.Dialogs, Vcl.StdCtrls;
 
 type
-  TFormImport = class(TForm)
+  TFormImport = class(TForm, IImport)
     Memo1: TMemo;
     ButtonImport: TButton;
     procedure ButtonImportClick(Sender: TObject);
@@ -19,21 +19,38 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
-  public
-    { Public declarations }
     MailAddresss: TStrings;
+    FPackageSmtp: TSmtp;
+    FPackageTips: TTips;
+    FCustomFormTips: TCustomForm;
     function AutoPostfix(var Str: string): Boolean;
     function AutoPostfixs(Str: string): TStrings;
     procedure AutoComplete;
+  public
+    { Public declarations }
   end;
 
-var
-  FormImport: TFormImport;
+  TImport = class(TInterfacedPersistent, IForm, IDialog, IImport)
+  private
+    FFormImport: TFormImport;
+    FImport: IImport;
+  public
+    procedure Create;
+    procedure Destroy; reintroduce;
+    function GetObject: TObject;
+    function Show: TObject;
+  public
+    property Import: IImport read FImport implements IImport;
+  end;
 
 implementation
 
+{$IFDEF DEBUG}
+
 uses
   UnitSmtp, UnitTips;
+{$ENDIF}
+
 {$R *.dfm}
 
 procedure TFormImport.AutoComplete;
@@ -41,9 +58,9 @@ var
   str, head, tail: string;
   col, line, i: Integer;
 begin
-  FormTips.Hide;
-  str := FormTips.ListBox1.Items[FormTips.ListBox1.ItemIndex];
-  if DataModuleSmtp.SettingsData.AutoWrap then
+  FCustomFormTips.Hide;
+  str := FPackageTips.Tips.GetPostfix;
+  if FPackageSmtp.Smtp.GetSettingsData.AutoWrap then
     str := str + #13#10;
 
   line := Memo1.CaretPos.Y;
@@ -67,9 +84,9 @@ begin
   if Str <> '' then
   begin
     if Str.IndexOf('@') = -1 then
-      Str := Str + '@' + DataModuleSmtp.SettingsData.DefaultPostfix
+      Str := Str + '@' + FPackageSmtp.Smtp.GetSettingsData.DefaultPostfix
     else if Str.IndexOf('.') = -1 then
-      Str := Str + DataModuleSmtp.SettingsData.DefaultPostfix;
+      Str := Str + FPackageSmtp.Smtp.GetSettingsData.DefaultPostfix;
     Result := True;
   end
   else
@@ -90,7 +107,7 @@ begin
     if not AutoPostfix(tmp) then
       Continue;
 
-    if DataModuleSmtp.SettingsData.FilterRepeat then
+    if FPackageSmtp.Smtp.GetSettingsData.FilterRepeat then
       if Result.IndexOf(tmp) <> -1 then
         Continue;
 
@@ -106,16 +123,19 @@ end;
 
 procedure TFormImport.FormCreate(Sender: TObject);
 begin
-  FormTips := TFormTips.Create(nil);
-  FormTips.AutoComplete := AutoComplete;
+  FPackageSmtp := UnitPackage.TSmtp.Create;
+  FPackageTips := UnitPackage.TTips.Create;
+  FPackageTips.Tips.SetAutoComplete(AutoComplete);
+  FPackageTips.Tips.SetPostfixs(FPackageSmtp.Smtp.GetPostfixs);
+  FCustomFormTips := TCustomForm(FPackageTips.Form.GetObject);
   MailAddresss := TStringList.Create;
 end;
 
 procedure TFormImport.FormDestroy(Sender: TObject);
 begin
-  FormTips.Close;
-  FormTips.Free;
-  FormTips := nil;
+  FCustomFormTips := nil;
+  FPackageTips.Free;
+  FPackageSmtp.Free;
 end;
 
 procedure TFormImport.Memo1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -141,15 +161,15 @@ begin
       h := Canvas.TextHeight(Memo1.Lines[line]) * (line + 1);
       w := Canvas.TextWidth(Memo1.Lines[line] + '@') + 2;
 
-      FormTips.Top := rect.Top + Memo1.BoundsRect.Top + h;
-      if (FormTips.Top > rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height) then
-        FormTips.Top := rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height;
+      FCustomFormTips.Top := rect.Top + Memo1.BoundsRect.Top + h;
+      if (FCustomFormTips.Top > rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height) then
+        FCustomFormTips.Top := rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height;
 
-      FormTips.Left := rect.Left + Memo1.BoundsRect.Left + w;
-      if (FormTips.Left > rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width) then
-        FormTips.Left := rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width;
+      FCustomFormTips.Left := rect.Left + Memo1.BoundsRect.Left + w;
+      if (FCustomFormTips.Left > rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width) then
+        FCustomFormTips.Left := rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width;
 
-      FormTips.Show;
+      FCustomFormTips.Show;
     end;
   end;
 end;
@@ -186,9 +206,42 @@ end;
 
 procedure TFormImport.Memo1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  if FormTips.Visible then
-    FormTips.Hide;
+  if FCustomFormTips.Visible then
+    FCustomFormTips.Hide;
 end;
+
+{ TImport }
+
+procedure TImport.Create;
+begin
+  FFormImport := TFormImport.Create(Application);
+  Supports(FFormImport, StringToGUID('{9BDB3246-7661-4729-A0E1-F4C0EE11C24D}'), FImport);
+end;
+
+procedure TImport.Destroy;
+begin
+  FImport := nil;
+  FFormImport.Free;
+  FFormImport := nil;
+end;
+
+function TImport.GetObject: TObject;
+begin
+  Result := FFormImport;
+end;
+
+function TImport.Show: TObject;
+begin
+  FFormImport.ShowModal;
+  Result := TObject(FFormImport.MailAddresss);
+end;
+
+initialization
+  RegisterClass(TImport);
+
+
+finalization
+  UnRegisterClass(TImport);
 
 end.
 

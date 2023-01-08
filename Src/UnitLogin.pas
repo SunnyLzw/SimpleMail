@@ -3,9 +3,10 @@ unit UnitLogin;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Vcl.ExtCtrls, System.ImageList, Vcl.ImgList, Vcl.Buttons;
+  UnitType, UnitTools, UnitPackage, Winapi.Windows, Winapi.Messages,
+  System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls,
+  Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, System.ImageList,
+  Vcl.ImgList, Vcl.Buttons;
 
 type
   TFormLogin = class(TForm)
@@ -34,35 +35,32 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ButtonLoadClick(Sender: TObject);
     procedure ButtonSaveClick(Sender: TObject);
-
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
+    IsModifed: Boolean;
+    FPackageSmtp: TSmtp;
   public
     { Public declarations }
-    IsLogined: Boolean;
-    IsModifed: Boolean;
   end;
 
-var
-  FormLogin: TFormLogin;
-
-function ShowLoginDialog: Boolean;
+  TLogin = class(TInterfacedPersistent, IForm, IDialog)
+  private
+    FFormLogin: TFormLogin;
+  public
+    procedure Create;
+    procedure Destroy; reintroduce;
+    function GetObject: TObject;
+    function Show: TObject;
+  end;
 
 implementation
 
 uses
-  Vcl.Imaging.pngimage, System.IniFiles, System.IOUtils, UnitType, UnitSmtp,
-  UnitEncrypt;
-{$R *.dfm}
+  {$IFDEF DEBUG}
+  UnitSmtp, {$ENDIF}Vcl.Imaging.pngimage, System.IniFiles, System.IOUtils;
 
-function ShowLoginDialog: Boolean;
-begin
-  FormLogin := TFormLogin.Create(nil);
-  FormLogin.ShowModal;
-  Result := FormLogin.IsLogined;
-  FormLogin.Free;
-  FormLogin := nil;
-end;
+{$R *.dfm}
 
 procedure TFormLogin.ButtonLoadClick(Sender: TObject);
 var
@@ -70,7 +68,7 @@ var
 begin
   if FileOpenDialog1.Execute then
   begin
-    with DataModuleSmtp.SmtpData do
+    with FPackageSmtp.Smtp.GetSmtpData do
     begin
       if FileOpenDialog1.FileTypeIndex = 1 then
         bs := TBytesStream.Create(TFile.ReadAllBytes(FileOpenDialog1.FileName))
@@ -123,14 +121,13 @@ begin
   end;
 
   try
-    if DataModuleSmtp.Login then
-      IsLogined := True;
+    ModalResult := mrCancel;
+    if FPackageSmtp.Smtp.Login then
+      ModalResult := mrOk;
   except
     ShowMessage('µ«¬Ω ß∞‹£¨«Î÷ÿ∆Ù»Ìº˛÷ÿ ‘');
     Exit;
   end;
-
-  Close;
 end;
 
 procedure TFormLogin.ButtonSaveClick(Sender: TObject);
@@ -139,7 +136,7 @@ var
 begin
   if FileSaveDialog1.Execute then
   begin
-    with DataModuleSmtp.SmtpData do
+    with FPackageSmtp.Smtp.GetSmtpData do
     begin
       ss := TStringStream.Create('', TEncoding.Unicode);
       with TMemIniFile.Create(ss, TEncoding.Unicode) do
@@ -167,6 +164,8 @@ end;
 
 procedure TFormLogin.FormCreate(Sender: TObject);
 begin
+  FPackageSmtp := UnitPackage.TSmtp.Create;
+
   if TFile.Exists('.\Res\Load.png') then
   begin
     var png: TPngImage;
@@ -185,9 +184,9 @@ begin
     png.Free;
   end;
 
-  IsLogined := False;
+  ModalResult := mrCancel;
   IsModifed := False;
-  with DataModuleSmtp.SmtpData do
+  with FPackageSmtp.Smtp.GetSmtpData do
   begin
     EditDisplayName.Text := DisplayName;
     EditUsername.Text := Username;
@@ -201,12 +200,19 @@ begin
   IsModifed := True;
 end;
 
+procedure TFormLogin.FormDestroy(Sender: TObject);
+begin
+  FPackageSmtp.Free;
+end;
+
 procedure TFormLogin.ButtonCanelClick(Sender: TObject);
 begin
-  Close;
+  ModalResult := mrCancel;
 end;
 
 procedure TFormLogin.ModifySmtpData(Sender: TObject);
+var
+  sd: TSmtpData;
 begin
   if not IsModifed then
     Exit;
@@ -216,7 +222,8 @@ begin
     EditPort.Text := '0';
     EditPort.SelectAll;
   end;
-  with DataModuleSmtp.SmtpData do
+  sd := FPackageSmtp.Smtp.GetSmtpData;
+  with sd do
   begin
     DisplayName := EditDisplayName.Text;
     Username := EditUsername.Text;
@@ -227,8 +234,39 @@ begin
     UseStartTLS := CheckBoxUseStartTLS.Checked;
     CheckBoxUseStartTLS.Enabled := UseSSL;
   end;
-  DataModuleSmtp.ModifySmtpData;
+  FPackageSmtp.Smtp.SetSmtpData(sd);
 end;
+
+{ TLogin }
+
+procedure TLogin.Create;
+begin
+  FFormLogin := TFormLogin.Create(Application);
+end;
+
+procedure TLogin.Destroy;
+begin
+  FFormLogin.Free;
+  FFormLogin := nil;
+end;
+
+function TLogin.GetObject: TObject;
+begin
+  Result := FFormLogin;
+end;
+
+function TLogin.Show: TObject;
+begin
+  FFormLogin.ShowModal;
+  Result := TObject(FFormLogin.ModalResult = mrOk);
+end;
+
+initialization
+  RegisterClass(TLogin);
+
+
+finalization
+  UnRegisterClass(TLogin);
 
 end.
 

@@ -29,6 +29,7 @@ package smAbout;
 {$IMPLICITBUILD ON}
 
 requires
+  smBase,
   rtl,
   vcl,
   vclimg;

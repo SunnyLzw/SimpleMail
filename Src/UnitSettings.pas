@@ -3,9 +3,9 @@ unit UnitSettings;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Samples.Spin, Vcl.ExtCtrls;
+  UnitType, UnitPackage, Winapi.Windows, Winapi.Messages, System.SysUtils,
+  System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
+  Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Samples.Spin, Vcl.ExtCtrls;
 
 type
   TFormSettings = class(TForm)
@@ -40,20 +40,32 @@ type
     procedure FormCreate(Sender: TObject);
     procedure TreeView1Change(Sender: TObject; Node: TTreeNode);
     procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
+    IsModifed: Boolean;
+    FPackageSmtp: TSmtp;
   public
     { Public declarations }
-    IsModifed: Boolean;
   end;
 
-var
-  FormSettings: TFormSettings;
+  TSettings = class(TInterfacedPersistent, IForm, IDialog)
+  private
+    FFormSettings: TFormSettings;
+  public
+    procedure Create;
+    procedure Destroy; reintroduce;
+    function GetObject: TObject;
+    function Show: TObject;
+  end;
 
 implementation
+{$IFDEF DEBUG}
 
 uses
-  UnitType, UnitSmtp, UnitLogin;
+  UnitSmtp, UnitLogin;
+{$ENDIF}
+
 {$R *.dfm}
 
 procedure TFormSettings.ButtonQuitClick(Sender: TObject);
@@ -65,11 +77,18 @@ end;
 procedure TFormSettings.ButtonSwitchClick(Sender: TObject);
 begin
   Close;
-  ShowLoginDialog;
+  with TDialog.Create('Login') do
+  try
+    Dialog.Show;
+  finally
+    Free;
+  end;
 end;
 
 procedure TFormSettings.FormCreate(Sender: TObject);
 begin
+  FPackageSmtp := UnitPackage.TSmtp.Create;
+
   for var i := 0 to PageControl1.PageCount - 1 do
   begin
     TreeView1.Items.Add(nil, PageControl1.Pages[i].Caption);
@@ -78,7 +97,7 @@ begin
   ComboBox1.Items.AddStrings(['Flat', 'Standard', 'UltraFlat', 'Office11']);
 
   IsModifed := False;
-  with DataModuleSmtp.SettingsData do
+  with FPackageSmtp.Smtp.GetSettingsData do
   begin
     EditDefaultPostfix.Text := DefaultPostfix;
     CheckBoxAutoPostfix.Checked := AutoPostfix;
@@ -102,12 +121,20 @@ begin
   IsModifed := True;
 end;
 
+procedure TFormSettings.FormDestroy(Sender: TObject);
+begin
+  FPackageSmtp.Free;
+end;
+
 procedure TFormSettings.ModifySettingsData(Sender: TObject);
+var
+  sd: TSettingsData;
 begin
   if not IsModifed then
     Exit;
 
-  with DataModuleSmtp.SettingsData do
+  sd := FPackageSmtp.Smtp.GetSettingsData;
+  with sd do
   begin
     DefaultPostfix := EditDefaultPostfix.Text;
     AutoPostfix := CheckBoxAutoPostfix.Checked;
@@ -127,7 +154,7 @@ begin
     IntervalTime := SpinEditIntervalTime.Value;
     SpinEditIntervalTime.Enabled := UseInterval;
   end;
-  DataModuleSmtp.ModifySettingsData;
+  FPackageSmtp.Smtp.SetSettingsData(sd);
 end;
 
 procedure TFormSettings.Splitter1CanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
@@ -139,6 +166,37 @@ procedure TFormSettings.TreeView1Change(Sender: TObject; Node: TTreeNode);
 begin
   PageControl1.ActivePageIndex := TreeView1.Selected.Index;
 end;
+
+{ TSettings }
+
+procedure TSettings.Create;
+begin
+  FFormSettings := TFormSettings.Create(Application);
+end;
+
+procedure TSettings.Destroy;
+begin
+  FFormSettings.Free;
+  FFormSettings := nil;
+end;
+
+function TSettings.GetObject: TObject;
+begin
+  Result := FFormSettings;
+end;
+
+function TSettings.Show: TObject;
+begin
+  FFormSettings.ShowModal;
+  Result := TObject(FFormSettings.ModalResult = mrOk);
+end;
+
+initialization
+  RegisterClass(TSettings);
+
+
+finalization
+  UnRegisterClass(TSettings);
 
 end.
 

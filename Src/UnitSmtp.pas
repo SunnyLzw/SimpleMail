@@ -3,10 +3,10 @@ unit UnitSmtp;
 interface
 
 uses
-  UnitType, System.IniFiles, Winapi.Windows, System.SysUtils, System.Classes,
-  FireDAC.UI.Intf, FireDAC.Stan.Param, Data.DB, FireDAC.Comp.DataSet,
-  FireDAC.Comp.Client, IdBaseComponent, IdSSLOpenSSL, FireDAC.Phys.SQLite,
-  FireDAC.Comp.UI, IdMessage, IdTCPConnection, IdTCPClient,
+  UnitType, UnitTools, System.IniFiles, Winapi.Windows, Vcl.Forms,
+  System.SysUtils, System.Classes, FireDAC.UI.Intf, FireDAC.Stan.Param, Data.DB,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, IdBaseComponent, IdSSLOpenSSL,
+  FireDAC.Phys.SQLite, FireDAC.Comp.UI, IdMessage, IdTCPConnection, IdTCPClient,
   IdExplicitTLSClientServerBase, IdMessageClient, IdSMTP, IdSMTPBase,
   IdIOHandlerSocket, IdIOHandlerStack, IdSSL, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def,
@@ -15,7 +15,7 @@ uses
   FireDAC.Phys.SQLiteWrapper.Stat, FireDAC.VCLUI.Wait, IdComponent, IdIOHandler;
 
 type
-  TDataModuleSmtp = class(TDataModule)
+  TDataModuleSmtp = class(TDataModule, ISmtp)
     FDConnection1: TFDConnection;
     FDQuery1: TFDQuery;
     IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
@@ -27,31 +27,45 @@ type
     procedure DataModuleDestroy(Sender: TObject);
   private
     { Private declarations }
+    TableName: string;
+    IWait: IFDGUIxWaitCursor;
+    SettingsData: TSettingsData;
+    SmtpData: TSmtpData;
+    MailData: TMailData;
+    Postfixs: TStrings;
+    function Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
     procedure CreateDefaultTable;
     procedure UpdateSettingsData;
     procedure UpdateSmtpData;
     procedure UpdateMailData;
   public
     { Public declarations }
-    TableName: string;
-    IWait: IFDGUIxWaitCursor;
-    SettingsData: TSettingsData;
-    SmtpData: TSmtpData;
-    MailData: TMailData;
-    Postfixs: TStringList;
     function Login: Boolean;
-    function Send(Address: string; DisplayName: string = ''): TSendData;
     procedure UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
-    procedure ModifySettingsData;
-    procedure ModifySmtpData;
-    procedure ModifyMailData;
-    function Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
+    function Send(Address: string; DisplayName: string = ''): TSendData;
+    function GetPostfixs: TStrings;
+    function GetSettingsData: TSettingsData;
+    function GetSmtpData: TSmtpData;
+    function GetMailData: TMailData;
+    procedure SetSettingsData(ASettingsData: TSettingsData);
+    procedure SetSmtpData(ASmtpData: TSmtpData);
+    procedure SetMailData(AMailData: TMailData);
     function SendAll: Integer;
-    function SendAtToday: Integer;
+    function SendAtDate(ADate: string = ''): Integer;
+    function EnumAll(var ASendDataList: TSendDataList): Integer;
+    function EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
   end;
 
-var
-  DataModuleSmtp: TDataModuleSmtp;
+  TSmtp = class(TInterfacedPersistent, IForm, ISmtp)
+  private
+    FDataModuleSmtp: ISmtp;
+  public
+    procedure Create;
+    procedure Destroy; reintroduce;
+    function GetObject: TObject;
+  public
+    property DataModuleSmtp: ISmtp read FDataModuleSmtp implements ISmtp;
+  end;
 
 const
   DefaultPostfixs: TArray<string> = ['qq.com', '126.com', '163.com', 'sina.com', 'gmail.com', 'foxmail.com', 'hotmail.com', 'outlook.com'];
@@ -60,11 +74,14 @@ implementation
 
 uses
   System.IOUtils, IdMessageBuilder, IdReplySmtp, IdExceptionCore,
-  FireDAC.Stan.Factory, UnitEncrypt;
+  FireDAC.Stan.Factory;
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 
 {$R *.dfm}
+
+var
+  GDataModuleSmtp: TDataModuleSmtp;
 
 procedure TDataModuleSmtp.CreateDefaultTable;
 begin
@@ -100,13 +117,13 @@ begin
   UpdateSmtpData;
   UpdateMailData;
   if not TFile.Exists('.\Config\Settings.ini') then
-    ModifySettingsData;
+    SetSettingsData(SettingsData);
 
   if not TFile.Exists('.\Config\Smtp.ini') then
-    ModifySmtpData;
+    SetSmtpData(SmtpData);
 
   if not TFile.Exists('.\Config\Mail.ini') then
-    ModifyMailData;
+    SetMailData(MailData);
 
   FDConnection1.Open;
   FDCreateInterface(IFDGUIxWaitCursor, IWait);
@@ -117,7 +134,7 @@ begin
   IdSMTP1.Disconnect;
 end;
 
-function TDataModuleSmtp.Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
+function TDataModuleSmtp.EnumAll(var ASendDataList: TSendDataList): Integer;
 var
   fs: TFormatSettings;
   sd: TSendData;
@@ -130,7 +147,7 @@ begin
   fs.TimeSeparator := ':';
   with FDQuery1 do
   begin
-    Open('Select * From ''' + TableName + ''' Where Address like ''' + AAddress.Replace('@', '_') + '''');
+    Open('Select * From ' + TableName);
     ASendDataList := TSendDataList.Create;
     ASendDataList.Count := RecordCount;
     First;
@@ -152,6 +169,103 @@ begin
       end;
     Close;
   end;
+end;
+
+function TDataModuleSmtp.EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
+var
+  fs: TFormatSettings;
+  sd: TSendData;
+begin
+  fs.LongDateFormat := 'yyyy-mm-dd';
+  fs.ShortDateFormat := 'yyyy-mm-dd';
+  fs.DateSeparator := '-';
+  fs.LongTimeFormat := 'hh:nn:ss';
+  fs.ShortTimeFormat := 'hh:nn:ss';
+  fs.TimeSeparator := ':';
+  if ADate.Trim = '' then
+    ADate := FormatDateTime('yyyy-mm-dd', Now);
+
+  with FDQuery1 do
+  begin
+    Open('Select * From ' + TableName + ' Where Time like ''' + ADate + '%''');
+    ASendDataList := TSendDataList.Create;
+    ASendDataList.Count := RecordCount;
+    First;
+    Result := 0;
+    while not Eof do
+      with sd do
+      begin
+        State := ssError;
+        if FieldByName('Success').AsWideString.ToBoolean then
+          State := ssSuccess;
+        DisplayName := FieldByName('DisplayName').AsWideString;
+        Address := FieldByName('Address').AsWideString;
+        ErrorCode := FieldByName('ErrorCode').AsInteger;
+        ErrorText := FieldByName('ErrorText').AsWideString;
+        Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
+        ASendDataList.Add(sd);
+        Inc(Result);
+        Next;
+      end;
+    Close;
+  end;
+end;
+
+function TDataModuleSmtp.Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
+var
+  fs: TFormatSettings;
+  sd: TSendData;
+begin
+  fs.LongDateFormat := 'yyyy-mm-dd';
+  fs.ShortDateFormat := 'yyyy-mm-dd';
+  fs.DateSeparator := '-';
+  fs.LongTimeFormat := 'hh:nn:ss';
+  fs.ShortTimeFormat := 'hh:nn:ss';
+  fs.TimeSeparator := ':';
+  with FDQuery1 do
+  begin
+    Open('Select * From ' + TableName + ' Where Address like ''' + AAddress.Replace('@', '_') + '''');
+    ASendDataList := TSendDataList.Create;
+    ASendDataList.Count := RecordCount;
+    First;
+    Result := 0;
+    while not Eof do
+      with sd do
+      begin
+        State := ssError;
+        if FieldByName('Success').AsWideString.ToBoolean then
+          State := ssSuccess;
+        DisplayName := FieldByName('DisplayName').AsWideString;
+        Address := FieldByName('Address').AsWideString;
+        ErrorCode := FieldByName('ErrorCode').AsInteger;
+        ErrorText := FieldByName('ErrorText').AsWideString;
+        Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
+        ASendDataList.Add(sd);
+        Inc(Result);
+        Next;
+      end;
+    Close;
+  end;
+end;
+
+function TDataModuleSmtp.GetMailData: TMailData;
+begin
+  Result := MailData;
+end;
+
+function TDataModuleSmtp.GetPostfixs: TStrings;
+begin
+  Result := Postfixs;
+end;
+
+function TDataModuleSmtp.GetSettingsData: TSettingsData;
+begin
+  Result := SettingsData;
+end;
+
+function TDataModuleSmtp.GetSmtpData: TSmtpData;
+begin
+  Result := SmtpData;
 end;
 
 procedure TDataModuleSmtp.UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
@@ -245,76 +359,6 @@ begin
   end;
 end;
 
-procedure TDataModuleSmtp.ModifyMailData;
-begin
-  with MailData do
-  begin
-    with TMemIniFile.Create('.\Config\Mail.ini', TEncoding.Unicode) do
-    try
-      WriteBool('Mail', 'IsHtml', IsHtml);
-      WriteString('Mail', 'Attachments', Attachments);
-      WriteString('Mail', 'Subject', Subject);
-      WriteString('Mail', 'Body', StrToBin(Body, TEncoding.Unicode));
-      UpdateFile;
-    finally
-      Free;
-    end;
-  end;
-end;
-
-procedure TDataModuleSmtp.ModifySettingsData;
-begin
-  with SettingsData do
-  begin
-    with TMemIniFile.Create('.\Config\Settings.ini', TEncoding.Unicode) do
-    try
-      WriteBool('Send', 'RepeatSend', RepeatSend);
-      WriteBool('Send', 'AutoStop', AutoStop);
-      WriteInteger('Send', 'StopNumber', StopNumber);
-      WriteBool('Send', 'UseInterval', UseInterval);
-      WriteInteger('Send', 'IntervalTime', IntervalTime);
-
-      WriteString('Add', 'DefaultPostfix', DefaultPostfix);
-      WriteBool('Add', 'AutoPostfix', AutoPostfix);
-      WriteBool('Add', 'AutoWrap', AutoWrap);
-      WriteBool('Add', 'FilterRepeat', FilterRepeat);
-      WriteBool('Add', 'CheckImportedList', CheckImportedList);
-
-      WriteBool('Display', 'UseCustomTheme', UseCustomTheme);
-      WriteInteger('Display', 'CustomTheme', CustomTheme);
-      WriteBool('Display', 'UseColor', UseColor);
-      UpdateFile;
-    finally
-      Free;
-    end;
-  end;
-end;
-
-procedure TDataModuleSmtp.ModifySmtpData;
-var
-  ss: TStringStream;
-begin
-  with SmtpData do
-  begin
-    ss := TStringStream.Create('', TEncoding.Unicode);
-    with TMemIniFile.Create(ss, TEncoding.Unicode) do
-    try
-      WriteString('Smtp', 'Username', Username);
-      WriteString('Smtp', 'Password', Password);
-      WriteString('Smtp', 'Host', Host);
-      WriteInteger('Smtp', 'Port', Port);
-      WriteBool('SSL', 'UseSSL', UseSSL);
-      WriteBool('SSL', 'UseStartTLS', UseStartTLS);
-      WriteString('Display', 'DisplayName', DisplayName);
-      UpdateFile;
-    finally
-      ss.LoadFromStream(Stream);
-      TBytesStream.Create(ss.Bytes.XOREncrypt).SaveToFile('.\Config\Smtp.smss');
-      Free;
-    end;
-  end;
-end;
-
 function TDataModuleSmtp.Send(Address, DisplayName: string): TSendData;
 var
   sdList: TSendDataList;
@@ -390,11 +434,87 @@ begin
   FDQuery1.Close;
 end;
 
-function TDataModuleSmtp.SendAtToday: Integer;
+function TDataModuleSmtp.SendAtDate(ADate: string): Integer;
 begin
-  FDQuery1.Open('Select * From ' + TableName + ' Where Time like ''' + FormatDateTime('yyyy-mm-dd', Now) + '%''');
+  if ADate.Trim = '' then
+    ADate := FormatDateTime('yyyy-mm-dd', Now);
+
+  FDQuery1.Open('Select * From ' + TableName + ' Where Time like ''' + ADate + '%''');
   Result := FDQuery1.RecordCount;
   FDQuery1.Close;
+end;
+
+procedure TDataModuleSmtp.SetMailData(AMailData: TMailData);
+begin
+  MailData := AMailData;
+  with MailData do
+  begin
+    with TMemIniFile.Create('.\Config\Mail.ini', TEncoding.Unicode) do
+    try
+      WriteBool('Mail', 'IsHtml', IsHtml);
+      WriteString('Mail', 'Attachments', Attachments);
+      WriteString('Mail', 'Subject', Subject);
+      WriteString('Mail', 'Body', StrToBin(Body, TEncoding.Unicode));
+      UpdateFile;
+    finally
+      Free;
+    end;
+  end;
+end;
+
+procedure TDataModuleSmtp.SetSettingsData(ASettingsData: TSettingsData);
+begin
+  SettingsData := ASettingsData;
+  with SettingsData do
+  begin
+    with TMemIniFile.Create('.\Config\Settings.ini', TEncoding.Unicode) do
+    try
+      WriteBool('Send', 'RepeatSend', RepeatSend);
+      WriteBool('Send', 'AutoStop', AutoStop);
+      WriteInteger('Send', 'StopNumber', StopNumber);
+      WriteBool('Send', 'UseInterval', UseInterval);
+      WriteInteger('Send', 'IntervalTime', IntervalTime);
+
+      WriteString('Add', 'DefaultPostfix', DefaultPostfix);
+      WriteBool('Add', 'AutoPostfix', AutoPostfix);
+      WriteBool('Add', 'AutoWrap', AutoWrap);
+      WriteBool('Add', 'FilterRepeat', FilterRepeat);
+      WriteBool('Add', 'CheckImportedList', CheckImportedList);
+
+      WriteBool('Display', 'UseCustomTheme', UseCustomTheme);
+      WriteInteger('Display', 'CustomTheme', CustomTheme);
+      WriteBool('Display', 'UseColor', UseColor);
+      UpdateFile;
+    finally
+      Free;
+    end;
+  end;
+end;
+
+procedure TDataModuleSmtp.SetSmtpData(ASmtpData: TSmtpData);
+var
+  ss: TStringStream;
+begin
+  SmtpData := ASmtpData;
+  with SmtpData do
+  begin
+    ss := TStringStream.Create('', TEncoding.Unicode);
+    with TMemIniFile.Create(ss, TEncoding.Unicode) do
+    try
+      WriteString('Smtp', 'Username', Username);
+      WriteString('Smtp', 'Password', Password);
+      WriteString('Smtp', 'Host', Host);
+      WriteInteger('Smtp', 'Port', Port);
+      WriteBool('SSL', 'UseSSL', UseSSL);
+      WriteBool('SSL', 'UseStartTLS', UseStartTLS);
+      WriteString('Display', 'DisplayName', DisplayName);
+      UpdateFile;
+    finally
+      ss.LoadFromStream(Stream);
+      TBytesStream.Create(ss.Bytes.XOREncrypt).SaveToFile('.\Config\Smtp.smss');
+      Free;
+    end;
+  end;
 end;
 
 procedure TDataModuleSmtp.UpdateMailData;
@@ -465,9 +585,32 @@ begin
   end;
 end;
 
+{ TSmtp }
+
+procedure TSmtp.Create;
+begin
+  Supports(GDataModuleSmtp, StringToGUID('{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}'), FDataModuleSmtp);
+end;
+
+procedure TSmtp.Destroy;
+begin
+  FDataModuleSmtp := nil;
+end;
+
+function TSmtp.GetObject: TObject;
+begin
+  Result := GDataModuleSmtp;
+end;
+
 initialization
+  Application.CreateForm(TDataModuleSmtp, GDataModuleSmtp);
+  RegisterClass(TSmtp);
+
 
 finalization
+  GDataModuleSmtp.Free;
+  GDataModuleSmtp := nil;
+  UnRegisterClass(TSmtp);
 
 end.
 

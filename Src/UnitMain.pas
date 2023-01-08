@@ -3,16 +3,13 @@ unit UnitMain;
 interface
 
 uses
-  UnitType, UnitPluginManager, Winapi.Windows, System.IOUtils, Winapi.Messages,
-  System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
-  Vcl.Menus, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ActnList, Vcl.Dialogs,
-  Vcl.ExtDlgs, Vcl.ImgList, System.ImageList, System.Actions;
+  UnitType, UnitPackage, UnitPluginManager, Winapi.Windows, System.IOUtils,
+  Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls,
+  Vcl.Forms, Vcl.Menus, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ActnList,
+  Vcl.Dialogs, Vcl.ExtDlgs, Vcl.ImgList, System.ImageList, System.Actions;
 
 type
-  TSend = class(TThread)
-    procedure Execute; override;
-    procedure Update;
-  end;
+  TSend = class;
 
   TFormMain = class(TForm)
     PopupMenu1: TPopupMenu;
@@ -28,7 +25,7 @@ type
     ActionListMain: TActionList;
     ActionImport: TAction;
     ActionSendStart: TAction;
-    NImportMailAddress: TMenuItem;
+    NFunction: TMenuItem;
     NImport: TMenuItem;
     NImportFromText: TMenuItem;
     ActionImportFromText: TAction;
@@ -97,10 +94,7 @@ type
     procedure ActionAboutExecute(Sender: TObject);
   private
     { Private declarations }
-    procedure WMGetMaxInfo(var Msg: TWMGetMinMaxInfo); message WM_GETMinMAXINFO;
-    procedure PluginOnClick(Sender: TObject);
-  public
-    { Public declarations }
+    FPackageSmtp: TSmtp;
     PluginManager: TPluginManager;
     LogList: TSendLogList;
     AttachmentList: TAttachmentDataList;
@@ -112,15 +106,38 @@ type
     procedure AddAttachments(AFileNames: TStrings);
     procedure UpdateAddress(SetSendButtonState: Boolean = True);
     procedure StopSend;
+    procedure WMGetMaxInfo(var Msg: TWMGetMinMaxInfo); message WM_GETMinMAXINFO;
+    procedure PluginOnClick(Sender: TObject);
+  public
+    { Public declarations }
   end;
 
-var
-  FormMain: TFormMain;
+  TSend = class(TThread)
+  private
+    FFormMain: TFormMain;
+  public
+    constructor Create(AFormMain: TFormMain);
+    destructor Destroy; override;
+    procedure Execute; override;
+    procedure Update;
+  end;
+
+  TMain = class(TInterfacedPersistent, IForm)
+  private
+    FFormMain: TFormMain;
+  public
+    procedure Create;
+    procedure Destroy; reintroduce;
+    function GetObject: TObject;
+  end;
 
 implementation
 
 uses
-  Vcl.Imaging.pngimage, UnitSmtp, UnitImport, UnitSettings, UnitAbout, UnitPluginFrame;
+{$IFDEF DEBUG}
+  UnitSmtp, UnitSettings, UnitAbout, UnitImport,
+{$ENDIF}
+  UnitPluginFrame, Vcl.Imaging.pngimage;
 {$R *.dfm}
 
 procedure TFormMain.PopupMenu1Popup(Sender: TObject);
@@ -184,11 +201,14 @@ begin
 end;
 
 procedure TFormMain.ModifyMailData(Sender: TObject);
+var
+  md: TMailData;
 begin
   if not IsModifed then
     Exit;
 
-  with DataModuleSmtp.MailData do
+  md := FPackageSmtp.Smtp.GetMailData;
+  with md do
   begin
     IsHtml := CheckBoxIsHtml.Checked;
     Attachments := '';
@@ -199,15 +219,17 @@ begin
     Subject := EditSubject.Text;
     Body := MemoBody.Text;
   end;
-  DataModuleSmtp.ModifyMailData;
+  FPackageSmtp.Smtp.SetMailData(md);
 end;
 
 procedure TFormMain.ActionAboutExecute(Sender: TObject);
 begin
-  FormAbout := TFormAbout.Create(nil);
-  FormAbout.ShowModal;
-  FormAbout.Free;
-  FormAbout := nil;
+  with TDialog.Create('About') do
+  try
+    Dialog.Show;
+  finally
+    Free;
+  end;
 end;
 
 procedure TFormMain.ActionClearAttachmentExecute(Sender: TObject);
@@ -248,11 +270,12 @@ end;
 
 procedure TFormMain.ActionImportExecute(Sender: TObject);
 begin
-  FormImport := TFormImport.Create(nil);
-  FormImport.ShowModal;
-  AddMailAddresss(FormImport.MailAddresss);
-  FormImport.Free;
-  FormImport := nil;
+  with UnitPackage.TImport.Create do
+  try
+    AddMailAddresss(TStrings(Dialog.Show));
+  finally
+    Free;
+  end;
   ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
   UpdateAddress;
 end;
@@ -264,7 +287,12 @@ begin
     try
       SetCurrentDir(ExtractFilePath(Application.ExeName));
       LoadFromFile(OpenTextFileDialog1.FileName, OpenTextFileDialog1.Encodings.Objects[OpenTextFileDialog1.EncodingIndex] as TEncoding);
-      AddMailAddresss(FormImport.AutoPostfixs(Text));
+      with UnitPackage.TImport.Create do
+      try
+        AddMailAddresss(Import.AutoPostfixs(Text));
+      finally
+        Free;
+      end;
       ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
       UpdateAddress;
     finally
@@ -274,21 +302,24 @@ end;
 
 procedure TFormMain.ActionSendStartExecute(Sender: TObject);
 begin
-  Send := TSend.Create;
+  Send := TSend.Create(Self);
 end;
 
 procedure TFormMain.ActionSendStopExecute(Sender: TObject);
 begin
   Send.Terminate;
+  Send := nil;
 end;
 
 procedure TFormMain.ActionSettingsExecute(Sender: TObject);
 begin
-  FormSettings := TFormSettings.Create(nil);
-  FormSettings.ShowModal;
-  FormSettings.Free;
-  FormSettings := nil;
-  Caption := DataModuleSmtp.SmtpData.Username;
+  with TDialog.Create('Settings') do
+  try
+    Dialog.Show;
+  finally
+    Free;
+  end;
+  Caption := FPackageSmtp.Smtp.GetSmtpData.Username;
   if ListView1.Items.Count > 0 then
     ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
 end;
@@ -320,8 +351,8 @@ end;
 
 procedure TFormMain.AddMailAddress(AMailaddress: string);
 begin
-  if DataModuleSmtp.SettingsData.FilterRepeat then
-    if DataModuleSmtp.SettingsData.CheckImportedList then
+  if FPackageSmtp.Smtp.GetSettingsData.FilterRepeat then
+    if FPackageSmtp.Smtp.GetSettingsData.CheckImportedList then
       if ListBoxMailAddress.Items.IndexOf(AMailaddress) <> -1 then
         Exit;
 
@@ -367,7 +398,7 @@ begin
     end;
   end;
 
-  if not DataModuleSmtp.SettingsData.UseColor then
+  if not FPackageSmtp.Smtp.GetSettingsData.UseColor then
     Sender.Canvas.Brush.Color := (Item.ListView as TListView).Color;
 end;
 
@@ -455,13 +486,15 @@ end;
 
 procedure TFormMain.FormCreate(Sender: TObject);
 var
-  item: TPluginObject;
+  item: PPluginObject;
   mi, pmi, nmi: TMenuItem;
 begin
-  Caption := DataModuleSmtp.SmtpData.Username;
+  FPackageSmtp := UnitPackage.TSmtp.Create;
+
+  Caption := FPackageSmtp.Smtp.GetSmtpData.Username;
   LogList := TSendLogList.Create;
   AttachmentList := TAttachmentDataList.Create;
-  PluginManager := TPluginManager.Create;
+  PluginManager := TPluginManager.Create('.\Plugins');
   for item in PluginManager.Plugins do
   begin
     pmi := nil;
@@ -551,7 +584,7 @@ begin
   end;
 
   IsModifed := False;
-  with DataModuleSmtp.MailData do
+  with FPackageSmtp.Smtp.GetMailData do
   begin
     CheckBoxIsHtml.Checked := IsHtml;
     var sl := TStringList.Create;
@@ -589,6 +622,8 @@ begin
   AttachmentList.Free;
 
   PluginManager.Free;
+
+  FPackageSmtp.Free;
 end;
 
 procedure TFormMain.FormShow(Sender: TObject);
@@ -600,8 +635,8 @@ end;
 procedure TFormMain.UpdateAddress(SetSendButtonState: Boolean);
 begin
   ListBoxMailAddress.TopIndex := 0;
-  StatusBarState.Panels[0].Text := '已发送邮箱：' + DataModuleSmtp.SendAll.ToString;
-  StatusBarState.Panels[1].Text := '今日已发送邮箱：' + DataModuleSmtp.SendAtToday.ToString;
+  StatusBarState.Panels[0].Text := '已发送邮箱：' + FPackageSmtp.Smtp.SendAll.ToString;
+  StatusBarState.Panels[1].Text := '今日已发送邮箱：' + FPackageSmtp.Smtp.SendAtDate.ToString;
   StatusBarState.Panels[2].Text := '待发送邮箱：' + ListBoxMailAddress.Items.Count.ToString;
   if SetSendButtonState then
     ButtonSendMail.Enabled := ListBoxMailAddress.Count > 0;
@@ -611,7 +646,7 @@ procedure TFormMain.WMGetMaxInfo(var Msg: TWMGetMinMaxInfo);
 begin
   with Msg.MinMaxInfo^ do
   begin
-    ptMinTrackSize.X := 800;
+    ptMinTrackSize.X := 900;
     ptMinTrackSize.Y := 600;
   end;
   Msg.Result := 0;
@@ -619,6 +654,19 @@ begin
 end;
 
 { TSend }
+
+constructor TSend.Create(AFormMain: TFormMain);
+begin
+  FFormMain := AFormMain;
+  inherited Create;
+end;
+
+destructor TSend.Destroy;
+begin
+  FFormMain.Send := nil;
+  FFormMain := nil;
+  inherited;
+end;
 
 procedure TSend.Execute;
 begin
@@ -629,7 +677,7 @@ end;
 
 procedure TSend.Update;
 begin
-  with FormMain do
+  with FFormMain do
   begin
     ButtonSendMail.Action := ActionSendStop;
     PanelMailAddress.Enabled := False;
@@ -637,8 +685,8 @@ begin
     ButtonImport.Enabled := False;
     StatusBarState.Panels[3].Text := '状态：正在验证';
 
-    DataModuleSmtp.Login;
-    DataModuleSmtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
+    FPackageSmtp.Smtp.Login;
+    FPackageSmtp.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
 
     var i: Integer := 0;
     while ListBoxMailAddress.Items.Count <> 0 do
@@ -657,7 +705,7 @@ begin
         var addr := ListBoxMailAddress.Items[0].Trim;
         Address := addr;
 
-        var sd := DataModuleSmtp.Send(addr);
+        var sd := FPackageSmtp.Smtp.Send(addr);
         New(Data);
         Data^ := sd;
         case sd.State of
@@ -693,28 +741,52 @@ begin
       ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
       UpdateAddress(False);
 
-      if DataModuleSmtp.SettingsData.AutoStop then
-        if i >= DataModuleSmtp.SettingsData.StopNumber then
+      if FPackageSmtp.Smtp.GetSettingsData.AutoStop then
+        if i >= FPackageSmtp.Smtp.GetSettingsData.StopNumber then
         begin
           StopSend;
           Break;
         end;
 
-      if DataModuleSmtp.SettingsData.UseInterval then
-        Sleep(DataModuleSmtp.SettingsData.IntervalTime);
+      if FPackageSmtp.Smtp.GetSettingsData.UseInterval then
+        Sleep(FPackageSmtp.Smtp.GetSettingsData.IntervalTime);
     end;
 
     StatusBarState.Panels[3].Text := '状态：空闲';
     UpdateAddress;
     ButtonImport.Enabled := True;
     ListBoxMailAddress.Enabled := True;
-    Caption := DataModuleSmtp.SmtpData.Username;
+    Caption := FPackageSmtp.Smtp.GetSmtpData.Username;
     PanelMessage.Enabled := True;
     PanelMailAddress.Enabled := True;
     ButtonSendMail.Action := ActionSendStart;
-    FormMain.Send := nil;
   end;
 end;
+
+{ TMain }
+
+procedure TMain.Create;
+begin
+  Application.CreateForm(TFormMain, FFormMain);
+end;
+
+procedure TMain.Destroy;
+begin
+  FFormMain.Free;
+  FFormMain := nil;
+end;
+
+function TMain.GetObject: TObject;
+begin
+  Result := FFormMain;
+end;
+
+initialization
+  RegisterClass(TMain);
+
+
+finalization
+  UnRegisterClass(TMain);
 
 end.
 

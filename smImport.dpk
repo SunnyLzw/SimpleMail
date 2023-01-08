@@ -29,8 +29,7 @@ package smImport;
 {$IMPLICITBUILD ON}
 
 requires
-  smSmtp,
-  smTips,
+  smBase,
   rtl;
 
 contains

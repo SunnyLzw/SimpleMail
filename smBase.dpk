@@ -1,5 +1,4 @@
 package smBase;
-
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
@@ -9,21 +8,21 @@ package smBase;
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
-{$LOCALSYMBOLS ON}
+{$LOCALSYMBOLS OFF}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
-{$OPTIMIZATION OFF}
-{$OVERFLOWCHECKS ON}
-{$RANGECHECKS ON}
-{$REFERENCEINFO ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
 {$SAFEDIVIDE OFF}
-{$STACKFRAMES ON}
+{$STACKFRAMES OFF}
 {$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE DEBUG}
+{$DEFINE RELEASE}
 {$ENDIF IMPLICITBUILDING}
 {$RUNONLY}
 {$IMPLICITBUILD ON}
@@ -33,46 +32,9 @@ requires
   vcl;
 
 contains
-  FireDAC.UI.Intf,
-  FireDAC.Stan.Param,
-  Data.DB,
-  FireDAC.Comp.DataSet,
-  FireDAC.Comp.Client,
-  IdBaseComponent,
-  IdSSLOpenSSL,
-  FireDAC.Phys.SQLite,
-  FireDAC.Comp.UI,
-  IdMessage,
-  IdTCPConnection,
-  IdTCPClient,
-  IdExplicitTLSClientServerBase,
-  IdMessageClient,
-  IdSMTP,
-  IdSMTPBase,
-  IdIOHandlerSocket,
-  IdIOHandlerStack,
-  IdSSL,
-  FireDAC.Stan.Intf,
-  FireDAC.Stan.Option,
-  FireDAC.Stan.Error,
-  FireDAC.Phys.Intf,
-  FireDAC.Stan.Def,
-  FireDAC.Stan.Pool,
-  FireDAC.Stan.Async,
-  FireDAC.Phys,
-  FireDAC.Phys.SQLiteDef,
-  FireDAC.Stan.ExprFuncs,
-  FireDAC.DatS,
-  FireDAC.DApt.Intf,
-  FireDAC.DApt,
-  FireDAC.Phys.SQLiteWrapper.Stat,
-  FireDAC.VCLUI.Wait,
-  IdComponent,
-  IdIOHandler,
-  IdMessageBuilder,
-  IdReplySmtp,
-  IdExceptionCore,
-  FireDAC.Stan.Factory;
+  UnitType in 'Src\UnitType.pas',
+  UnitTools in 'Src\UnitTools.pas',
+  UnitPackage in 'Src\UnitPackage.pas';
 
 end.
 

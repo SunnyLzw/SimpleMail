@@ -3,7 +3,7 @@ object FormSettings: TFormSettings
   Top = 0
   BorderStyle = bsDialog
   Caption = #35774#32622
-  ClientHeight = 193
+  ClientHeight = 196
   ClientWidth = 322
   Color = clBtnFace
   DoubleBuffered = True
@@ -14,6 +14,7 @@ object FormSettings: TFormSettings
   Font.Style = []
   Position = poMainFormCenter
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   TextHeight = 15
   object PanelMain: TPanel
     Left = 8

@@ -29,10 +29,11 @@ package smTips;
 {$IMPLICITBUILD ON}
 
 requires
-  smSmtp,
+  smBase,
   rtl;
 
 contains
   UnitTips in 'Src\UnitTips.pas' {FormTips};
 
 end.
+

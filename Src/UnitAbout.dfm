@@ -3,7 +3,7 @@ object FormAbout: TFormAbout
   Top = 0
   BorderStyle = bsDialog
   Caption = #20851#20110
-  ClientHeight = 210
+  ClientHeight = 209
   ClientWidth = 288
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -92,9 +92,9 @@ object FormAbout: TFormAbout
     object Label2: TLabel
       Left = 70
       Top = 29
-      Width = 84
+      Width = 90
       Height = 15
-      Caption = #29256#26412#65306'1.0.9.129'
+      Caption = #29256#26412#65306'1.1.10.207'
       IsControl = True
     end
     object Label3: TLabel

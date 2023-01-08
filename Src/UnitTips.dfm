@@ -11,7 +11,6 @@ object FormTips: TFormTips
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 14
   object ListBox1: TListBox
