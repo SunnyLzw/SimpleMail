@@ -578,6 +578,7 @@ begin
     nmi.OnClick := PluginOnClick;
     nmi.Tag := NativeInt(item.PluginInterface);
 
+    item.PluginInterface.SetMenuItem(nmi);
     item.PluginInterface.Execute;
   end;
 
