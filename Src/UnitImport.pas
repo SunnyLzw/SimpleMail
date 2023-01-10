@@ -20,9 +20,11 @@ type
   private
     { Private declarations }
     MailAddresss: TStrings;
-    FPackageSmtp: TSmtp;
+    FPackageBase: TBase;
     FPackageTips: TTips;
     FCustomFormTips: TCustomForm;
+    FOriginalActive: TNotifyEvent;
+    procedure NewActivate(Sender: TObject);
     function AutoPostfix(var Str: string): Boolean;
     function AutoPostfixs(Str: string): TStrings;
     procedure AutoComplete;
@@ -48,7 +50,7 @@ implementation
 {$IFDEF DEBUG}
 
 uses
-  UnitSmtp, UnitTips;
+  UnitBase, UnitTips;
 {$ENDIF}
 
 {$R *.dfm}
@@ -60,7 +62,7 @@ var
 begin
   FCustomFormTips.Hide;
   str := FPackageTips.Tips.GetPostfix;
-  if FPackageSmtp.Smtp.GetSettingsData.AutoWrap then
+  if FPackageBase.Base.GetSettingsData.AutoWrap then
     str := str + #13#10;
 
   line := Memo1.CaretPos.Y;
@@ -84,9 +86,9 @@ begin
   if Str <> '' then
   begin
     if Str.IndexOf('@') = -1 then
-      Str := Str + '@' + FPackageSmtp.Smtp.GetSettingsData.DefaultPostfix
+      Str := Str + '@' + FPackageBase.Base.GetSettingsData.DefaultPostfix
     else if Str.IndexOf('.') = -1 then
-      Str := Str + FPackageSmtp.Smtp.GetSettingsData.DefaultPostfix;
+      Str := Str + FPackageBase.Base.GetSettingsData.DefaultPostfix;
     Result := True;
   end
   else
@@ -107,7 +109,7 @@ begin
     if not AutoPostfix(tmp) then
       Continue;
 
-    if FPackageSmtp.Smtp.GetSettingsData.FilterRepeat then
+    if FPackageBase.Base.GetSettingsData.FilterRepeat then
       if Result.IndexOf(tmp) <> -1 then
         Continue;
 
@@ -123,10 +125,12 @@ end;
 
 procedure TFormImport.FormCreate(Sender: TObject);
 begin
-  FPackageSmtp := UnitPackage.TSmtp.Create;
+  FOriginalActive := Application.OnActivate;
+  Application.OnActivate := NewActivate;
+  FPackageBase := UnitPackage.TBase.Create;
   FPackageTips := UnitPackage.TTips.Create;
   FPackageTips.Tips.SetAutoComplete(AutoComplete);
-  FPackageTips.Tips.SetPostfixs(FPackageSmtp.Smtp.GetPostfixs);
+  FPackageTips.Tips.SetPostfixs(FPackageBase.Base.GetPostfixs);
   FCustomFormTips := TCustomForm(FPackageTips.Form.GetObject);
   MailAddresss := TStringList.Create;
 end;
@@ -135,7 +139,8 @@ procedure TFormImport.FormDestroy(Sender: TObject);
 begin
   FCustomFormTips := nil;
   FPackageTips.Free;
-  FPackageSmtp.Free;
+  FPackageBase.Free;
+  Application.OnActivate := FOriginalActive;
 end;
 
 procedure TFormImport.Memo1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -210,6 +215,22 @@ begin
     FCustomFormTips.Hide;
 end;
 
+procedure TFormImport.NewActivate(Sender: TObject);
+var
+  LCursor: TPoint;
+begin
+  if Assigned(FOriginalActive) then
+    FOriginalActive(Application);
+
+  GetCursorPos(LCursor);
+  ShowCursor(False);
+  SetCursorPos(Left, Top);
+  mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+  mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+  SetCursorPos(LCursor.X, LCursor.Y);
+  ShowCursor(True);
+end;
+
 { TImport }
 
 procedure TImport.Create;
@@ -235,13 +256,6 @@ begin
   FFormImport.ShowModal;
   Result := TObject(FFormImport.MailAddresss);
 end;
-
-initialization
-  RegisterClass(TImport);
-
-
-finalization
-  UnRegisterClass(TImport);
 
 end.
 

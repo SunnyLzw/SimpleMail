@@ -3,7 +3,7 @@ unit UnitPluginFrame;
 interface
 
 uses
-  Vcl.Forms, Vcl.Menus, System.Classes;
+  Vcl.Menus, System.Classes;
 
 type
   {$Align 4}

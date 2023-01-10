@@ -3,21 +3,17 @@ unit UnitSettings;
 interface
 
 uses
-  UnitType, UnitPackage, Winapi.Windows, Winapi.Messages, System.SysUtils,
-  System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
-  Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Samples.Spin, Vcl.ExtCtrls;
+  UnitType, UnitTools, UnitPackage, Winapi.Windows, Winapi.Messages,
+  System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls,
+  Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Samples.Spin,
+  Vcl.ExtCtrls, Vcl.Buttons;
 
 type
   TFormSettings = class(TForm)
     PanelMain: TPanel;
-    Splitter1: TSplitter;
-    PanelList: TPanel;
-    TreeView1: TTreeView;
     PanelPage: TPanel;
     PageControl1: TPageControl;
     TabSheet1: TTabSheet;
-    ButtonQuit: TButton;
-    ButtonSwitch: TButton;
     TabSheet2: TTabSheet;
     CheckBoxRepeatSend: TCheckBox;
     CheckBoxAutoStop: TCheckBox;
@@ -34,17 +30,32 @@ type
     CheckBoxUseCustomTheme: TCheckBox;
     CheckBoxUseColor: TCheckBox;
     ComboBox1: TComboBox;
+    FileSaveDialog1: TFileSaveDialog;
+    FileOpenDialog1: TFileOpenDialog;
+    Label2: TLabel;
+    Label1: TLabel;
+    EditUsername: TEdit;
+    Label3: TLabel;
+    RadioGroupUseSSL: TRadioGroup;
+    Label5: TLabel;
+    Label4: TLabel;
+    CheckBoxUseStartTLS: TCheckBox;
+    ButtonSave: TSpeedButton;
+    ButtonLoad: TSpeedButton;
+    EditDisplayName: TEdit;
+    EditPort: TEdit;
+    EditPassword: TEdit;
+    EditHost: TEdit;
     procedure ModifySettingsData(Sender: TObject);
-    procedure ButtonSwitchClick(Sender: TObject);
-    procedure ButtonQuitClick(Sender: TObject);
+    procedure ModifySmtpData(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure TreeView1Change(Sender: TObject; Node: TTreeNode);
-    procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
     procedure FormDestroy(Sender: TObject);
+    procedure ButtonLoadClick(Sender: TObject);
+    procedure ButtonSaveClick(Sender: TObject);
   private
     { Private declarations }
     IsModifed: Boolean;
-    FPackageSmtp: TSmtp;
+    FPackageBase: TBase;
   public
     { Public declarations }
   end;
@@ -60,44 +71,113 @@ type
   end;
 
 implementation
-{$IFDEF DEBUG}
 
 uses
-  UnitSmtp, UnitLogin;
-{$ENDIF}
+  {$IFDEF DEBUG}
+  UnitBase, {$ENDIF}Vcl.Imaging.pngimage, System.IniFiles, System.IOUtils;
 
 {$R *.dfm}
 
-procedure TFormSettings.ButtonQuitClick(Sender: TObject);
+procedure TFormSettings.ButtonLoadClick(Sender: TObject);
+var
+  bs: TBytesStream;
 begin
-  Close;
-  Application.Terminate;
+  if FileOpenDialog1.Execute then
+  begin
+    with FPackageBase.Base.GetSmtpData do
+    begin
+      if FileOpenDialog1.FileTypeIndex = 1 then
+        bs := TBytesStream.Create(TFile.ReadAllBytes(FileOpenDialog1.FileName))
+      else
+        bs := TBytesStream.Create(TFile.ReadAllBytes(FileOpenDialog1.FileName).XORDecrypt);
+      with TMemIniFile.Create(bs, TEncoding.Unicode) do
+      try
+        IsModifed := False;
+        EditUsername.Text := ReadString('Base', 'Username', '');
+        EditPassword.Text := ReadString('Base', 'Password', '');
+        EditHost.Text := ReadString('Base', 'Host', '');
+        EditPort.Text := ReadInteger('Base', 'Port', 0).ToString;
+        RadioGroupUseSSL.ItemIndex := (not ReadBool('SSL', 'UseSSL', False)).ToInteger;
+        CheckBoxUseStartTLS.Enabled := ReadBool('SSL', 'UseSSL', False);
+        CheckBoxUseStartTLS.Checked := ReadBool('SSL', 'UseStartTLS', False);
+        EditDisplayName.Text := ReadString('Display', 'DisplayName', '');
+        IsModifed := True;
+        ModifySmtpData(nil);
+      finally
+        Free;
+      end;
+    end;
+  end;
 end;
 
-procedure TFormSettings.ButtonSwitchClick(Sender: TObject);
+procedure TFormSettings.ButtonSaveClick(Sender: TObject);
+var
+  ss: TStringStream;
 begin
-  Close;
-  with TDialog.Create('Login') do
-  try
-    Dialog.Show;
-  finally
-    Free;
+  if FileSaveDialog1.Execute then
+  begin
+    with FPackageBase.Base.GetSmtpData do
+    begin
+      ss := TStringStream.Create('', TEncoding.Unicode);
+      with TMemIniFile.Create(ss, TEncoding.Unicode) do
+      try
+        WriteString('Base', 'Username', Username);
+        WriteString('Base', 'Password', Password);
+        WriteString('Base', 'Host', Host);
+        WriteInteger('Base', 'Port', Port);
+        WriteBool('SSL', 'UseSSL', UseSSL);
+        WriteBool('SSL', 'UseStartTLS', UseStartTLS);
+        WriteString('Display', 'DisplayName', DisplayName);
+        UpdateFile;
+      finally
+        ss.LoadFromStream(Stream);
+        if FileSaveDialog1.FileTypeIndex = 1 then
+          TBytesStream.Create(ss.Bytes).SaveToFile(FileSaveDialog1.FileName)
+        else
+          TBytesStream.Create(ss.Bytes.XOREncrypt).SaveToFile(FileSaveDialog1.FileName);
+        Free;
+      end;
+    end;
   end;
 end;
 
 procedure TFormSettings.FormCreate(Sender: TObject);
 begin
-  FPackageSmtp := UnitPackage.TSmtp.Create;
-
-  for var i := 0 to PageControl1.PageCount - 1 do
-  begin
-    TreeView1.Items.Add(nil, PageControl1.Pages[i].Caption);
-    PageControl1.Pages[i].TabVisible := False;
-  end;
+  FPackageBase := UnitPackage.TBase.Create;
   ComboBox1.Items.AddStrings(['Flat', 'Standard', 'UltraFlat', 'Office11']);
 
+  if TFile.Exists('.\Res\Load.png') then
+  begin
+    var png: TPngImage;
+    png := TPngImage.Create;
+    png.LoadFromFile('.\Res\Load.png');
+    ButtonLoad.Glyph.Assign(png);
+    png.Free;
+  end;
+
+  if TFile.Exists('.\Res\Save.png') then
+  begin
+    var png: TPngImage;
+    png := TPngImage.Create;
+    png.LoadFromFile('.\Res\Save.png');
+    ButtonSave.Glyph.Assign(png);
+    png.Free;
+  end;
+
   IsModifed := False;
-  with FPackageSmtp.Smtp.GetSettingsData do
+  with FPackageBase.Base.GetSmtpData do
+  begin
+    EditDisplayName.Text := DisplayName;
+    EditUsername.Text := Username;
+    EditPassword.Text := Password;
+    EditHost.Text := Host;
+    EditPort.Text := Port.ToString;
+    RadioGroupUseSSL.ItemIndex := (not UseSSL).ToInteger;
+    CheckBoxUseStartTLS.Enabled := UseSSL;
+    CheckBoxUseStartTLS.Checked := UseStartTLS;
+  end;
+
+  with FPackageBase.Base.GetSettingsData do
   begin
     EditDefaultPostfix.Text := DefaultPostfix;
     CheckBoxAutoPostfix.Checked := AutoPostfix;
@@ -123,7 +203,7 @@ end;
 
 procedure TFormSettings.FormDestroy(Sender: TObject);
 begin
-  FPackageSmtp.Free;
+  FPackageBase.Free;
 end;
 
 procedure TFormSettings.ModifySettingsData(Sender: TObject);
@@ -133,7 +213,7 @@ begin
   if not IsModifed then
     Exit;
 
-  sd := FPackageSmtp.Smtp.GetSettingsData;
+  sd := FPackageBase.Base.GetSettingsData;
   with sd do
   begin
     DefaultPostfix := EditDefaultPostfix.Text;
@@ -154,17 +234,34 @@ begin
     IntervalTime := SpinEditIntervalTime.Value;
     SpinEditIntervalTime.Enabled := UseInterval;
   end;
-  FPackageSmtp.Smtp.SetSettingsData(sd);
+  FPackageBase.Base.SetSettingsData(sd);
 end;
 
-procedure TFormSettings.Splitter1CanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
+procedure TFormSettings.ModifySmtpData(Sender: TObject);
+var
+  sd: TSmtpData;
 begin
-  Accept := Width - NewSize > 200;
-end;
+  if not IsModifed then
+    Exit;
 
-procedure TFormSettings.TreeView1Change(Sender: TObject; Node: TTreeNode);
-begin
-  PageControl1.ActivePageIndex := TreeView1.Selected.Index;
+  if EditPort.Text = '' then
+  begin
+    EditPort.Text := '0';
+    EditPort.SelectAll;
+  end;
+  sd := FPackageBase.Base.GetSmtpData;
+  with sd do
+  begin
+    DisplayName := EditDisplayName.Text;
+    Username := EditUsername.Text;
+    Password := EditPassword.Text;
+    Host := EditHost.Text;
+    Port := string(EditPort.Text).ToInteger;
+    UseSSL := RadioGroupUseSSL.ItemIndex = 0;
+    UseStartTLS := CheckBoxUseStartTLS.Checked;
+    CheckBoxUseStartTLS.Enabled := UseSSL;
+  end;
+  FPackageBase.Base.SetSmtpData(sd);
 end;
 
 { TSettings }
@@ -190,13 +287,6 @@ begin
   FFormSettings.ShowModal;
   Result := TObject(FFormSettings.ModalResult = mrOk);
 end;
-
-initialization
-  RegisterClass(TSettings);
-
-
-finalization
-  UnRegisterClass(TSettings);
 
 end.
 

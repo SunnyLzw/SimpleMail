@@ -29,7 +29,7 @@ package smTips;
 {$IMPLICITBUILD ON}
 
 requires
-  smBase,
+  smType,
   rtl;
 
 contains

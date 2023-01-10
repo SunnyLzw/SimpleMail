@@ -3,7 +3,7 @@ unit UnitPackage;
 interface
 
 uses
-  System.Classes, System.SysUtils, UnitType;
+  System.SysUtils, System.Rtti, UnitType;
 
 type
   TCustomPackage = class(TInterfacedObject)
@@ -12,21 +12,24 @@ type
     FPackageName: string;
     FModuleHandle: HMODULE;
 {$ENDIF}
-    FPersistentClassName: string;
-    FPersistentClass: TPersistentClass;
+    FUnitName: string;
+    FClassName: string;
+    FTypeName: string;
+    FType: TRttiType;
+    FInstanceType: TRttiInstanceType;
   private
     procedure OnCreate; virtual; abstract;
     procedure OnDestroy; virtual; abstract;
   public
-    constructor Create(APackageName: string); virtual;
+    constructor Create(APackageName: string; AUnitName: string = ''; AClassName: string = ''); virtual;
     destructor Destroy; override;
   public
-    property PersistentClass: TPersistentClass read FPersistentClass;
+    property InstanceType: TRttiInstanceType read FInstanceType;
   end;
 
   TPackage = class(TCustomPackage)
   private
-    FPersistent: TPersistent;
+    FObject: TObject;
     FIsSupported: Boolean;
   private
     procedure OnCreate; override;
@@ -55,8 +58,9 @@ type
     property Dialog: IDialog read FDialog implements IDialog;
   end;
 
-  TSmtp = class(TForm, ISmtp)
+  TBase = class(TForm, IBase, ISmtp)
   private
+    FBase: IBase;
     FSmtp: ISmtp;
   private
     procedure OnCreate; override;
@@ -64,6 +68,7 @@ type
   public
     constructor Create; reintroduce;
   public
+    property Base: IBase read FBase implements IBase;
     property Smtp: ISmtp read FSmtp implements ISmtp;
   end;
 
@@ -95,21 +100,34 @@ implementation
 
 { TCustomPackage }
 
-constructor TCustomPackage.Create(APackageName: string);
+constructor TCustomPackage.Create(APackageName: string; AUnitName: string; AClassName: string);
 begin
 {$IFNDEF DEBUG}
-  FPackageName := '.\Packages\sm' + APackageName + '.bpl';
-  FModuleHandle := LoadPackage(FPackageName);
+  FPackageName := 'sm' + APackageName + '.bpl';
+  FModuleHandle := LoadPackage('.\Packages\' + FPackageName);
 {$ENDIF}
-  FPersistentClassName := 'T' + APackageName;
-  FPersistentClass := GetClass(FPersistentClassName);
+  if AUnitName.Trim = '' then
+    FUnitName := 'Unit' + APackageName;
+
+  if AClassName.Trim = '' then
+    FClassName := 'T' + APackageName;
+
+  FTypeName := FUnitName + '.' + FClassName;
+
+  with TRttiContext.Create do
+  try
+    FType := FindType(FTypeName);
+    FInstanceType := FType as TRttiInstanceType;
+  finally
+    Free;
+  end;
   OnCreate;
 end;
 
 destructor TCustomPackage.Destroy;
 begin
   OnDestroy;
-  FPersistentClass := nil;
+  FInstanceType := nil;
 {$IFNDEF DEBUG}
   UnLoadPackage(FModuleHandle);
 {$ENDIF}
@@ -120,22 +138,22 @@ end;
 
 procedure TPackage.OnCreate;
 begin
-  FPersistent := FPersistentClass.Create;
+  FObject := FInstanceType.MetaclassType.Create;
   FIsSupported := False;
 end;
 
 procedure TPackage.OnDestroy;
 begin
   if not FIsSupported then
-    if Assigned(FPersistent) then
-      FPersistent.Free;
+    if Assigned(FObject) then
+      FObject.Free;
 
-  FPersistent := nil;
+  FObject := nil;
 end;
 
 procedure TPackage.Supports(AIID: TGUID; out AIntf);
 begin
-  System.SysUtils.Supports(FPersistent, AIID, AIntf);
+  System.SysUtils.Supports(FObject, AIID, AIntf);
   FIsSupported := True;
 end;
 
@@ -169,22 +187,24 @@ begin
   inherited;
 end;
 
-{ TSmtp }
+{ TBase }
 
-constructor TSmtp.Create;
+constructor TBase.Create;
 begin
-  inherited Create('Smtp');
+  inherited Create('Base');
 end;
 
-procedure TSmtp.OnCreate;
+procedure TBase.OnCreate;
 begin
   inherited;
-  Supports(StringToGUID('{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}'), FSmtp);
+  Supports(StringToGUID('{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}'), FBase);
+  Supports(StringToGUID('{B01FB75A-0399-439F-AAE6-2F2EDA3C90FF}'), FSmtp);
 end;
 
-procedure TSmtp.OnDestroy;
+procedure TBase.OnDestroy;
 begin
   FSmtp := nil;
+  FBase := nil;
   inherited;
 end;
 

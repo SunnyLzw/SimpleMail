@@ -1,15 +1,18 @@
 program SimpleMail;
-{$IF CompilerVersion >= 21.0}
-{$WEAKLINKRTTI ON}
-{$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
-{$IFEND}
+{$IFDEF DEBUG}
+  {$STRONGLINKTYPES ON}
+{$ELSE}
+  {$IF CompilerVersion >= 21.0}
+  {$WEAKLINKRTTI ON}
+  {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
+  {$ENDIF}
+{$ENDIF}
 
 uses
   UnitType,
   UnitPackage,
 {$IFDEF DEBUG}
-  UnitSmtp,
-  UnitLogin,
+  UnitBase,
   UnitMain,
 {$ENDIF}
   Vcl.Forms,
@@ -25,23 +28,14 @@ var
 begin
   GMutex := CreateMutex(nil, True, '{04262155-48E5-4D75-94C0-9EC0BA6B5E2D}');
   if GetLastError <> ERROR_ALREADY_EXISTS then
-    with UnitPackage.TSmtp.Create do
+    with UnitPackage.TBase.Create do
     try
       Application.Initialize;
-      Application.Title := 'µÇÂ¼';
-      with UnitPackage.TDialog.Create('Login') do
+      Application.Title := 'SimpleMail';
+      Application.MainFormOnTaskbar := True;
+      with UnitPackage.TForm.Create('Main') do
       try
-        if Assigned(Dialog.Show) then
-        begin
-          Application.Title := 'SimpleMail';
-          Application.MainFormOnTaskbar := True;
-          with UnitPackage.TForm.Create('Main') do
-          try
-            Application.Run;
-          finally
-            Free;
-          end;
-        end;
+        Application.Run;
       finally
         Free;
       end;

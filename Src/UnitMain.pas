@@ -94,22 +94,22 @@ type
     procedure ActionAboutExecute(Sender: TObject);
   private
     { Private declarations }
-    FPackageSmtp: TSmtp;
+    FPackageBase: TBase;
     PluginManager: TPluginManager;
     LogList: TSendLogList;
     AttachmentList: TAttachmentDataList;
     Send: TSend;
     IsModifed: Boolean;
-    procedure AddMailAddress(AMailaddress: string);
-    procedure AddMailAddresss(AMailaddresss: TStrings);
-    procedure AddAttachment(AFileName: string);
-    procedure AddAttachments(AFileNames: TStrings);
-    procedure UpdateAddress(SetSendButtonState: Boolean = True);
     procedure StopSend;
     procedure WMGetMaxInfo(var Msg: TWMGetMinMaxInfo); message WM_GETMinMAXINFO;
     procedure PluginOnClick(Sender: TObject);
   public
     { Public declarations }
+    procedure AddMailAddress(AMailaddress: string);
+    procedure AddMailAddresss(AMailaddresss: TStrings);
+    procedure AddAttachment(AFileName: string);
+    procedure AddAttachments(AFileNames: TStrings);
+    procedure UpdateAddress(SetSendButtonState: Boolean = True);
   end;
 
   TSend = class(TThread)
@@ -135,7 +135,7 @@ implementation
 
 uses
 {$IFDEF DEBUG}
-  UnitSmtp, UnitSettings, UnitAbout, UnitImport,
+  UnitBase, UnitSettings, UnitAbout, UnitImport,
 {$ENDIF}
   UnitPluginFrame, Vcl.Imaging.pngimage;
 {$R *.dfm}
@@ -207,7 +207,7 @@ begin
   if not IsModifed then
     Exit;
 
-  md := FPackageSmtp.Smtp.GetMailData;
+  md := FPackageBase.Base.GetMailData;
   with md do
   begin
     IsHtml := CheckBoxIsHtml.Checked;
@@ -219,7 +219,7 @@ begin
     Subject := EditSubject.Text;
     Body := MemoBody.Text;
   end;
-  FPackageSmtp.Smtp.SetMailData(md);
+  FPackageBase.Base.SetMailData(md);
 end;
 
 procedure TFormMain.ActionAboutExecute(Sender: TObject);
@@ -241,7 +241,6 @@ end;
 procedure TFormMain.ActionClearMailAddressExecute(Sender: TObject);
 begin
   ListBoxMailAddress.Items.Clear;
-  ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
   UpdateAddress;
 end;
 
@@ -254,7 +253,6 @@ end;
 procedure TFormMain.ActionDeleteSelectMailAddressExecute(Sender: TObject);
 begin
   ListBoxMailAddress.DeleteSelected;
-  ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
   UpdateAddress;
 end;
 
@@ -276,7 +274,6 @@ begin
   finally
     Free;
   end;
-  ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
   UpdateAddress;
 end;
 
@@ -293,7 +290,6 @@ begin
       finally
         Free;
       end;
-      ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
       UpdateAddress;
     finally
       Free;
@@ -319,7 +315,9 @@ begin
   finally
     Free;
   end;
-  Caption := FPackageSmtp.Smtp.GetSmtpData.Username;
+  Caption := FPackageBase.Base.GetSmtpData.Username;
+  UpdateAddress(True);
+
   if ListView1.Items.Count > 0 then
     ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
 end;
@@ -351,11 +349,12 @@ end;
 
 procedure TFormMain.AddMailAddress(AMailaddress: string);
 begin
-  if FPackageSmtp.Smtp.GetSettingsData.FilterRepeat then
-    if FPackageSmtp.Smtp.GetSettingsData.CheckImportedList then
+  if FPackageBase.Base.GetSettingsData.FilterRepeat then
+    if FPackageBase.Base.GetSettingsData.CheckImportedList then
       if ListBoxMailAddress.Items.IndexOf(AMailaddress) <> -1 then
         Exit;
 
+  Application.ProcessMessages;
   ListBoxMailAddress.Items.Add(AMailaddress);
 end;
 
@@ -371,7 +370,6 @@ begin
   if Key = VK_DELETE then
   begin
     ListBoxMailAddress.DeleteSelected;
-    ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
     UpdateAddress;
   end;
 end;
@@ -398,7 +396,7 @@ begin
     end;
   end;
 
-  if not FPackageSmtp.Smtp.GetSettingsData.UseColor then
+  if not FPackageBase.Base.GetSettingsData.UseColor then
     Sender.Canvas.Brush.Color := (Item.ListView as TListView).Color;
 end;
 
@@ -487,11 +485,11 @@ end;
 procedure TFormMain.FormCreate(Sender: TObject);
 var
   item: PPluginObject;
-  mi, pmi, nmi: TMenuItem;
+  mi, gmi, pmi, nmi: TMenuItem;
 begin
-  FPackageSmtp := UnitPackage.TSmtp.Create;
+  FPackageBase := UnitPackage.TBase.Create;
 
-  Caption := FPackageSmtp.Smtp.GetSmtpData.Username;
+  Caption := FPackageBase.Base.GetSmtpData.Username;
   LogList := TSendLogList.Create;
   AttachmentList := TAttachmentDataList.Create;
   PluginManager := TPluginManager.Create('.\Plugins');
@@ -550,17 +548,30 @@ begin
       end;
     end;
 
-    repeat
-      nmi := TMenuItem.Create(MainMenu);
-      MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(nmi);
-      if item.PluginData.GroupName.Trim = '' then
-        Break;
+    gmi := nil;
+    nmi := TMenuItem.Create(MainMenu);
+    if item.PluginData.GroupName.Trim <> '' then
+    begin
+      for mi in MainMenu.Items[MainMenu.Items.IndexOf(pmi)] do
+      begin
+        if mi.Caption = item.PluginData.GroupName then
+        begin
+          gmi := mi;
+          Break;
+        end;
+      end;
 
-      nmi.Caption := item.PluginData.GroupName;
-      mi := nmi;
-      nmi := TMenuItem.Create(MainMenu);
-      pmi.Items[MainMenu.Items[MainMenu.Items.IndexOf(pmi)].IndexOf(mi)].Add(nmi);
-    until True;
+      if not Assigned(gmi) then
+      begin
+        gmi := TMenuItem.Create(MainMenu);
+        gmi.Caption := item.PluginData.GroupName;
+        MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(gmi);
+      end;
+
+      pmi.Items[MainMenu.Items[MainMenu.Items.IndexOf(pmi)].IndexOf(gmi)].Add(nmi);
+    end
+    else
+      MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(nmi);
 
     nmi.Caption := item.PluginData.Name;
     nmi.Hint := item.PluginData.Hint;
@@ -584,7 +595,7 @@ begin
   end;
 
   IsModifed := False;
-  with FPackageSmtp.Smtp.GetMailData do
+  with FPackageBase.Base.GetMailData do
   begin
     CheckBoxIsHtml.Checked := IsHtml;
     var sl := TStringList.Create;
@@ -622,8 +633,7 @@ begin
   AttachmentList.Free;
 
   PluginManager.Free;
-
-  FPackageSmtp.Free;
+  FPackageBase.Free;
 end;
 
 procedure TFormMain.FormShow(Sender: TObject);
@@ -634,9 +644,10 @@ end;
 
 procedure TFormMain.UpdateAddress(SetSendButtonState: Boolean);
 begin
+  ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
   ListBoxMailAddress.TopIndex := 0;
-  StatusBarState.Panels[0].Text := '已发送邮箱：' + FPackageSmtp.Smtp.SendAll.ToString;
-  StatusBarState.Panels[1].Text := '今日已发送邮箱：' + FPackageSmtp.Smtp.SendAtDate.ToString;
+  StatusBarState.Panels[0].Text := '已发送邮箱：' + FPackageBase.Base.SendAll.ToString;
+  StatusBarState.Panels[1].Text := '今日已发送邮箱：' + FPackageBase.Base.SendAtDate.ToString;
   StatusBarState.Panels[2].Text := '待发送邮箱：' + ListBoxMailAddress.Items.Count.ToString;
   if SetSendButtonState then
     ButtonSendMail.Enabled := ListBoxMailAddress.Count > 0;
@@ -685,8 +696,8 @@ begin
     ButtonImport.Enabled := False;
     StatusBarState.Panels[3].Text := '状态：正在验证';
 
-    FPackageSmtp.Smtp.Login;
-    FPackageSmtp.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
+    FPackageBase.Smtp.Login;
+    FPackageBase.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
 
     var i: Integer := 0;
     while ListBoxMailAddress.Items.Count <> 0 do
@@ -705,7 +716,7 @@ begin
         var addr := ListBoxMailAddress.Items[0].Trim;
         Address := addr;
 
-        var sd := FPackageSmtp.Smtp.Send(addr);
+        var sd := FPackageBase.Smtp.Send(addr);
         New(Data);
         Data^ := sd;
         case sd.State of
@@ -738,25 +749,24 @@ begin
       ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
 
       ListBoxMailAddress.Items.Delete(0);
-      ListBoxMailAddress.Items.SaveToFile('.\Backup.txt', TEncoding.Unicode);
       UpdateAddress(False);
 
-      if FPackageSmtp.Smtp.GetSettingsData.AutoStop then
-        if i >= FPackageSmtp.Smtp.GetSettingsData.StopNumber then
+      if FPackageBase.Base.GetSettingsData.AutoStop then
+        if i >= FPackageBase.Base.GetSettingsData.StopNumber then
         begin
           StopSend;
           Break;
         end;
 
-      if FPackageSmtp.Smtp.GetSettingsData.UseInterval then
-        Sleep(FPackageSmtp.Smtp.GetSettingsData.IntervalTime);
+      if FPackageBase.Base.GetSettingsData.UseInterval then
+        Sleep(FPackageBase.Base.GetSettingsData.IntervalTime);
     end;
 
     StatusBarState.Panels[3].Text := '状态：空闲';
     UpdateAddress;
     ButtonImport.Enabled := True;
     ListBoxMailAddress.Enabled := True;
-    Caption := FPackageSmtp.Smtp.GetSmtpData.Username;
+    Caption := FPackageBase.Base.GetSmtpData.Username;
     PanelMessage.Enabled := True;
     PanelMailAddress.Enabled := True;
     ButtonSendMail.Action := ActionSendStart;
@@ -780,13 +790,6 @@ function TMain.GetObject: TObject;
 begin
   Result := FFormMain;
 end;
-
-initialization
-  RegisterClass(TMain);
-
-
-finalization
-  UnRegisterClass(TMain);
 
 end.
 

@@ -78,12 +78,5 @@ begin
   Result := TObject(FFormAbout.ModalResult = mrOk);
 end;
 
-initialization
-  RegisterClass(TAbout);
-
-
-finalization
-  UnRegisterClass(TAbout);
-
 end.
 

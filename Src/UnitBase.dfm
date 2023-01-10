@@ -1,4 +1,4 @@
-object DataModuleSmtp: TDataModuleSmtp
+object DataModuleBase: TDataModuleBase
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
   Height = 182
@@ -19,16 +19,6 @@ object DataModuleSmtp: TDataModuleSmtp
     Left = 120
     Top = 32
   end
-  object IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL
-    MaxLineAction = maException
-    Port = 0
-    DefaultPort = 0
-    SSLOptions.Mode = sslmUnassigned
-    SSLOptions.VerifyMode = []
-    SSLOptions.VerifyDepth = 0
-    Left = 40
-    Top = 96
-  end
   object FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink
     Left = 152
     Top = 8
@@ -37,11 +27,6 @@ object DataModuleSmtp: TDataModuleSmtp
     Provider = 'Forms'
     ScreenCursor = gcrHourGlass
     Left = 128
-    Top = 96
-  end
-  object IdSMTP1: TIdSMTP
-    SASLMechanisms = <>
-    Left = 88
     Top = 96
   end
   object IdMessage1: TIdMessage
@@ -55,7 +40,22 @@ object DataModuleSmtp: TDataModuleSmtp
     Recipients = <>
     ReplyTo = <>
     ConvertPreamble = True
-    Left = 168
-    Top = 96
+    Left = 160
+    Top = 56
+  end
+  object IdSMTP1: TIdSMTP
+    SASLMechanisms = <>
+    Left = 80
+    Top = 56
+  end
+  object IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL
+    MaxLineAction = maException
+    Port = 0
+    DefaultPort = 0
+    SSLOptions.Mode = sslmUnassigned
+    SSLOptions.VerifyMode = []
+    SSLOptions.VerifyDepth = 0
+    Left = 32
+    Top = 56
   end
 end

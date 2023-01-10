@@ -29,7 +29,7 @@ package smMain;
 {$IMPLICITBUILD ON}
 
 requires
-  smBase,
+  smType,
   smPlugin,
   rtl,
   vclimg;

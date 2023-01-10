@@ -95,7 +95,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="smBase.dcp"/>
+        <DCCReference Include="smType.dcp"/>
         <DCCReference Include="smPlugin.dcp"/>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vclimg.dcp"/>

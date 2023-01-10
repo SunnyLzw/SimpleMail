@@ -70,11 +70,8 @@ type
     function Show: TObject;
   end;
 
-  ISmtp = interface
+  IBase = interface
     ['{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}']
-    function Login: Boolean;
-    procedure UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
-    function Send(Address: string; DisplayName: string = ''): TSendData;
     function GetPostfixs: TStrings;
     function GetSettingsData: TSettingsData;
     function GetSmtpData: TSmtpData;
@@ -86,6 +83,14 @@ type
     function SendAtDate(ADate: string = ''): Integer;
     function EnumAll(var ASendDataList: TSendDataList): Integer;
     function EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
+    function EnumAllSuccessMailAddress: TStrings;
+  end;
+
+  ISmtp = interface
+    ['{B01FB75A-0399-439F-AAE6-2F2EDA3C90FF}']
+    function Login: Boolean;
+    procedure UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
+    function Send(Address: string; DisplayName: string = ''): TSendData;
   end;
 
   ITips = interface

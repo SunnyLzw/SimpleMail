@@ -3,8 +3,8 @@ unit UnitPluginManager;
 interface
 
 uses
-  System.Classes, Winapi.Windows, System.SysUtils, System.Generics.Collections,
-  System.IOUtils, UnitPluginFrame;
+  Winapi.Windows, System.SysUtils, System.Generics.Collections, System.IOUtils,
+  UnitPluginFrame;
 
 type
   PPluginObject = ^TPluginObject;
@@ -28,6 +28,9 @@ type
 
 implementation
 
+uses
+  System.Rtti;
+
 { TPluginManager }
 
 constructor TPluginManager.Create(APluginPath: string);
@@ -41,7 +44,7 @@ begin
   begin
     i.PluginInterface.OnUnLoad;
     i.PluginInterface := nil;
-    UnloadPackage(i.ModuleHandle);
+    //UnloadPackage(i.ModuleHandle);
     Dispose(i);
   end;
 
@@ -50,6 +53,13 @@ begin
 end;
 
 procedure TPluginManager.EnumPlugin(APluginPath: string);
+var
+  LPackage: TRttiPackage;
+  LType: TRttiType;
+  LClass: TRttiInstanceType;
+  LPluginObject: PPluginObject;
+  LHandle: THandle;
+  LPluginInterface: IPlugin;
 begin
   FPlugins := TList<PPluginObject>.Create;
   if not DirectoryExists(APluginPath) then
@@ -58,31 +68,41 @@ begin
   var fs := TDirectory.GetFiles(APluginPath, '*.bpl');
   for var i in fs do
   begin
-    var po: PPluginObject;
-    New(po);
-    po.ModuleHandle := LoadPackage(i);
-    if po.ModuleHandle <= 0 then
+    LHandle := LoadPackage(i);
+    if LHandle <= 0 then
       Continue;
 
-    var str := ExtractFileName(i);
-    str := 'TPlugin' + str.Remove(str.IndexOf('.'));
-    var c := FindClass(str);
-    if not Assigned(c) then
-    begin
-      UnloadPackage(po.ModuleHandle);
-      Continue;
+    with TRttiContext.Create do
+    try
+      for LPackage in GetPackages do
+      begin
+        if ExtractFileName(LPackage.Name) <> ExtractFileName(i) then
+          Continue;
+
+        for LType in LPackage.GetTypes do
+        begin
+          if not (LType.BaseType = GetType(TPlugin)) then
+            Continue;
+
+          LClass := LType as TRttiInstanceType;
+          Supports(LClass.MetaclassType.Create as TPlugin, StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), LPluginInterface);
+          if not Assigned(LPluginInterface) then
+          begin
+            UnloadPackage(LHandle);
+            Continue;
+          end;
+          New(LPluginObject);
+          LPluginObject.ModuleHandle := LHandle;
+          LPluginInterface.OnLoad;
+          LPluginObject.PluginData := LPluginInterface.GetPluginData;
+          LPluginObject.PluginInterface := LPluginInterface;
+          FPlugins.Add(LPluginObject);
+          LPluginInterface := nil;
+        end;
+      end;
+    finally
+      Free;
     end;
-
-    Supports(TPlugin(c.Create), StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), po.PluginInterface);
-    if not Assigned(po.PluginInterface) then
-    begin
-      UnloadPackage(po.ModuleHandle);
-      Continue;
-    end;
-
-    po.PluginInterface.OnLoad;
-    po.PluginData := po.PluginInterface.GetPluginData;
-    FPlugins.Add(po);
   end;
 end;
 

@@ -137,12 +137,5 @@ begin
   Result := FFormTips;
 end;
 
-initialization
-  RegisterClass(TTips);
-
-
-finalization
-  UnRegisterClass(TTips);
-
 end.
 

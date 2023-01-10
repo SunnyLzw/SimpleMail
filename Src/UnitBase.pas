@@ -1,4 +1,4 @@
-unit UnitSmtp;
+unit UnitBase;
 
 interface
 
@@ -15,35 +15,36 @@ uses
   FireDAC.Phys.SQLiteWrapper.Stat, FireDAC.VCLUI.Wait, IdComponent, IdIOHandler;
 
 type
-  TDataModuleSmtp = class(TDataModule, ISmtp)
+  TSmtp = class;
+
+  TDataModuleBase = class(TDataModule, IBase)
     FDConnection1: TFDConnection;
     FDQuery1: TFDQuery;
-    IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
     FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
     FDGUIxWaitCursor1: TFDGUIxWaitCursor;
-    IdSMTP1: TIdSMTP;
     IdMessage1: TIdMessage;
+    IdSMTP1: TIdSMTP;
+    IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
     procedure DataModuleCreate(Sender: TObject);
     procedure DataModuleDestroy(Sender: TObject);
   private
     { Private declarations }
+    FSmtp: TSmtp;
     TableName: string;
     IWait: IFDGUIxWaitCursor;
     SettingsData: TSettingsData;
     SmtpData: TSmtpData;
     MailData: TMailData;
     Postfixs: TStrings;
+  public
+    { Public declarations }
     function Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
     procedure CreateDefaultTable;
+    function TableIsExist: Boolean;
+    function GetPostfixs: TStrings;
     procedure UpdateSettingsData;
     procedure UpdateSmtpData;
     procedure UpdateMailData;
-  public
-    { Public declarations }
-    function Login: Boolean;
-    procedure UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
-    function Send(Address: string; DisplayName: string = ''): TSendData;
-    function GetPostfixs: TStrings;
     function GetSettingsData: TSettingsData;
     function GetSmtpData: TSmtpData;
     function GetMailData: TMailData;
@@ -54,17 +55,31 @@ type
     function SendAtDate(ADate: string = ''): Integer;
     function EnumAll(var ASendDataList: TSendDataList): Integer;
     function EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
+    function EnumAllSuccessMailAddress: TStrings;
   end;
 
-  TSmtp = class(TInterfacedPersistent, IForm, ISmtp)
+  TSmtp = class(TInterfacedPersistent, ISmtp)
   private
-    FDataModuleSmtp: ISmtp;
+    FBase: TDataModuleBase;
+  public
+    constructor Create(ADataModuleBase: TDataModuleBase);
+    destructor Destroy; override;
+    function Login: Boolean;
+    procedure UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
+    function Send(Address: string; DisplayName: string = ''): TSendData;
+  end;
+
+  TBase = class(TInterfacedPersistent, IForm, IBase, ISmtp)
+  private
+    FBase: IBase;
+    FSmtp: ISmtp;
   public
     procedure Create;
     procedure Destroy; reintroduce;
     function GetObject: TObject;
   public
-    property DataModuleSmtp: ISmtp read FDataModuleSmtp implements ISmtp;
+    property Base: IBase read FBase implements IBase;
+    property Smtp: ISmtp read FSmtp implements ISmtp;
   end;
 
 const
@@ -81,20 +96,24 @@ uses
 {$R *.dfm}
 
 var
-  GDataModuleSmtp: TDataModuleSmtp;
+  GDataModuleBase: TDataModuleBase;
+  GReferenceCount: Integer;
 
-procedure TDataModuleSmtp.CreateDefaultTable;
+procedure TDataModuleBase.CreateDefaultTable;
 begin
+  if TableIsExist then
+    Exit;
+
   with FDQuery1 do
   begin
-    TableName := 'BeenSend_' + StrToBin(SmtpData.Username);
     SQL.Text := 'Create Table If Not Exists ' + TableName + ' (Id integer Primary Key Autoincrement Not Null,DisplayName ntext,Address ntext,Success ntext,ErrorCode int,ErrorText ntext,Time ntext)';
     ExecSQL;
   end;
 end;
 
-procedure TDataModuleSmtp.DataModuleCreate(Sender: TObject);
+procedure TDataModuleBase.DataModuleCreate(Sender: TObject);
 begin
+  FSmtp := TSmtp.Create(Self);
   if not TDirectory.Exists('.\Data') then
     TDirectory.CreateDirectory('.\Data');
 
@@ -129,12 +148,15 @@ begin
   FDCreateInterface(IFDGUIxWaitCursor, IWait);
 end;
 
-procedure TDataModuleSmtp.DataModuleDestroy(Sender: TObject);
+procedure TDataModuleBase.DataModuleDestroy(Sender: TObject);
 begin
+  FSmtp.Free;
+  FSmtp := nil;
   IdSMTP1.Disconnect;
+  IWait := nil;
 end;
 
-function TDataModuleSmtp.EnumAll(var ASendDataList: TSendDataList): Integer;
+function TDataModuleBase.EnumAll(var ASendDataList: TSendDataList): Integer;
 var
   fs: TFormatSettings;
   sd: TSendData;
@@ -145,6 +167,11 @@ begin
   fs.LongTimeFormat := 'hh:nn:ss';
   fs.ShortTimeFormat := 'hh:nn:ss';
   fs.TimeSeparator := ':';
+
+  Result := 0;
+  if not TableIsExist then
+    Exit;
+
   with FDQuery1 do
   begin
     Open('Select * From ' + TableName);
@@ -171,7 +198,26 @@ begin
   end;
 end;
 
-function TDataModuleSmtp.EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
+function TDataModuleBase.EnumAllSuccessMailAddress: TStrings;
+begin
+  Result := TStringList.Create;
+  if not TableIsExist then
+    Exit;
+
+  with FDQuery1 do
+  begin
+    Open('Select * From ' + TableName + ' Where Success like ''True''');
+    First;
+    while not Eof do
+    begin
+      Result.Append(FieldByName('Address').AsWideString);
+      Next;
+    end;
+    Close;
+  end;
+end;
+
+function TDataModuleBase.EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
 var
   fs: TFormatSettings;
   sd: TSendData;
@@ -182,6 +228,11 @@ begin
   fs.LongTimeFormat := 'hh:nn:ss';
   fs.ShortTimeFormat := 'hh:nn:ss';
   fs.TimeSeparator := ':';
+
+  Result := 0;
+  if not TableIsExist then
+    Exit;
+
   if ADate.Trim = '' then
     ADate := FormatDateTime('yyyy-mm-dd', Now);
 
@@ -211,7 +262,7 @@ begin
   end;
 end;
 
-function TDataModuleSmtp.Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
+function TDataModuleBase.Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
 var
   fs: TFormatSettings;
   sd: TSendData;
@@ -222,6 +273,11 @@ begin
   fs.LongTimeFormat := 'hh:nn:ss';
   fs.ShortTimeFormat := 'hh:nn:ss';
   fs.TimeSeparator := ':';
+
+  Result := 0;
+  if not TableIsExist then
+    Exit;
+
   with FDQuery1 do
   begin
     Open('Select * From ' + TableName + ' Where Address like ''' + AAddress.Replace('@', '_') + '''');
@@ -248,194 +304,43 @@ begin
   end;
 end;
 
-function TDataModuleSmtp.GetMailData: TMailData;
+function TDataModuleBase.GetMailData: TMailData;
 begin
   Result := MailData;
 end;
 
-function TDataModuleSmtp.GetPostfixs: TStrings;
+function TDataModuleBase.GetPostfixs: TStrings;
 begin
   Result := Postfixs;
 end;
 
-function TDataModuleSmtp.GetSettingsData: TSettingsData;
+function TDataModuleBase.GetSettingsData: TSettingsData;
 begin
   Result := SettingsData;
 end;
 
-function TDataModuleSmtp.GetSmtpData: TSmtpData;
+function TDataModuleBase.GetSmtpData: TSmtpData;
 begin
   Result := SmtpData;
 end;
 
-procedure TDataModuleSmtp.UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
+function TDataModuleBase.SendAll: Integer;
 begin
-  if Assigned(IdMessage1) then
-    IdMessage1.Free;
+  Result := 0;
+  if not TableIsExist then
+    Exit;
 
-  IdMessage1 := TIdMessage.Create(nil);
-  with IdMessage1 do
-  begin
-    Clear;
-    Sender.Name := SmtpData.DisplayName;
-    Sender.Address := SmtpData.Username;
-    Recipients.Clear;
-    Recipients.Add;
-    Priority := mpNormal;
-    Subject := ASubject;
-    MessageParts.Clear;
-  end;
-
-  with TIdMessageBuilderHtml.Create do
-  try
-    Clear;
-    if MailData.IsHtml then
-    begin
-      HtmlCharSet := 'UTF-8';
-      Html.Text := ABody;
-    end
-    else
-    begin
-      PlainTextCharSet := 'UTF-8';
-      PlainText.Text := ABody;
-    end;
-
-    for var i in SAttachmentDataList do
-    begin
-      var bs := TMemoryStream.Create;
-      with bs do
-      begin
-        LoadFromFile(i.Path);
-        Attachments.Add(bs, '', i.Id);
-      end;
-    end;
-    FillMessage(IdMessage1);
-  finally
-    Free;
-  end;
-end;
-
-function TDataModuleSmtp.Login: Boolean;
-begin
-  IWait.StartWait;
-
-  try
-    IdSMTP1 := TIdSmtp.Create(nil);
-    IdSSLIOHandlerSocketOpenSSL1 := TIdSSLIOHandlerSocketOpenSSL.Create(nil);
-    with IdSMTP1 do
-    try
-      Host := SmtpData.Host;
-      Port := SmtpData.Port;
-      Username := SmtpData.Username;
-      Password := SmtpData.Password;
-      if SmtpData.UseSSL then
-      begin
-        IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Method := sslvSSLv23;
-        IOHandler := IdSSLIOHandlerSocketOpenSSL1;
-        if SmtpData.UseStartTLS then
-          UseTLS := utUseRequireTLS
-        else
-          UseTLS := utUseImplicitTLS;
-      end
-      else
-        UseTLS := utNoTLSSupport;
-
-      ReadTimeout := 5000;
-      try
-        Connect;
-      except
-        on rt: EIdReadTimeout do
-          MessageBox(0, 'µÇÂ½³¬Ê±£¬ÇëÖØÆôÈí¼þÖØÊÔ', '', 0);
-      end;
-
-      Authenticate;
-    except
-
-    end;
-  finally
-    CreateDefaultTable;
-    Result := IdSMTP1.Connected;
-    IWait.StopWait;
-  end;
-end;
-
-function TDataModuleSmtp.Send(Address, DisplayName: string): TSendData;
-var
-  sdList: TSendDataList;
-begin
-  if DisplayName.Trim = '' then
-    DisplayName := Address.Remove(Address.IndexOf('@'));
-
-  Result.DisplayName := DisplayName;
-  Result.Address := Address;
-
-  with FDQuery1 do
-  try
-    IWait.StartWait;
-    if Find(Address, sdList) > 0 then
-    begin
-      Result := sdList[sdList.Count - 1];
-      if Result.State = ssSuccess then
-      begin
-        if not SettingsData.RepeatSend then
-        begin
-          Result.State := ssRepeat;
-          Exit;
-        end;
-      end;
-    end;
-
-    with IdMessage1 do
-    begin
-      Recipients[0].Address := Result.Address;
-      Recipients[0].Name := Result.DisplayName;
-    end;
-
-    with Result do
-    begin
-      var ret := True;
-      try
-        ErrorCode := 250;
-        ErrorText := '';
-        IdSMTP1.Send(IdMessage1);
-      except
-        on E: EIdSMTPReplyError do
-        begin
-          ErrorCode := E.ErrorCode;
-          ErrorText := E.Message;
-          ret := False;
-        end;
-      end;
-
-      if ret then
-        State := ssSuccess
-      else
-        State := ssError;
-      Time := Now;
-      Sql.Text := 'Insert Into ' + TableName + '(DisplayName,Address,Success,ErrorCode,ErrorText,Time) Values(:DisplayName,:Address,:Success,:ErrorCode,:ErrorText,:Time)';
-      ParamByName('DisplayName').AsWideString := DisplayName;
-      ParamByName('Address').AsWideString := Address;
-      ParamByName('Success').AsWideString := ret.ToString(TUseBoolStrs.True);
-      ParamByName('ErrorCode').AsInteger := ErrorCode;
-      ParamByName('ErrorText').AsWideString := ErrorText;
-      ParamByName('Time').AsWideString := FormatDateTime('yyyy-mm-dd hh:nn:ss', Time);
-      ExecSQL;
-    end;
-  finally
-    Close;
-    IWait.StopWait;
-  end;
-end;
-
-function TDataModuleSmtp.SendAll: Integer;
-begin
   FDQuery1.Open('Select * From ' + TableName);
   Result := FDQuery1.RecordCount;
   FDQuery1.Close;
 end;
 
-function TDataModuleSmtp.SendAtDate(ADate: string): Integer;
+function TDataModuleBase.SendAtDate(ADate: string): Integer;
 begin
+  Result := 0;
+  if not TableIsExist then
+    Exit;
+
   if ADate.Trim = '' then
     ADate := FormatDateTime('yyyy-mm-dd', Now);
 
@@ -444,7 +349,7 @@ begin
   FDQuery1.Close;
 end;
 
-procedure TDataModuleSmtp.SetMailData(AMailData: TMailData);
+procedure TDataModuleBase.SetMailData(AMailData: TMailData);
 begin
   MailData := AMailData;
   with MailData do
@@ -462,7 +367,7 @@ begin
   end;
 end;
 
-procedure TDataModuleSmtp.SetSettingsData(ASettingsData: TSettingsData);
+procedure TDataModuleBase.SetSettingsData(ASettingsData: TSettingsData);
 begin
   SettingsData := ASettingsData;
   with SettingsData do
@@ -491,7 +396,7 @@ begin
   end;
 end;
 
-procedure TDataModuleSmtp.SetSmtpData(ASmtpData: TSmtpData);
+procedure TDataModuleBase.SetSmtpData(ASmtpData: TSmtpData);
 var
   ss: TStringStream;
 begin
@@ -517,7 +422,13 @@ begin
   end;
 end;
 
-procedure TDataModuleSmtp.UpdateMailData;
+function TDataModuleBase.TableIsExist: Boolean;
+begin
+  TableName := 'BeenSend_' + StrToBin(SmtpData.Username);
+  FDQuery1.SQL.Text := 'Select * From sqlite_master Where table_name = ''' + TableName + '''';
+end;
+
+procedure TDataModuleBase.UpdateMailData;
 begin
   with MailData do
   begin
@@ -533,7 +444,7 @@ begin
   end;
 end;
 
-procedure TDataModuleSmtp.UpdateSettingsData;
+procedure TDataModuleBase.UpdateSettingsData;
 begin
   with SettingsData do
   begin
@@ -560,7 +471,7 @@ begin
   end;
 end;
 
-procedure TDataModuleSmtp.UpdateSmtpData;
+procedure TDataModuleBase.UpdateSmtpData;
 var
   bs: TBytesStream;
 begin
@@ -585,32 +496,219 @@ begin
   end;
 end;
 
+{ TBase }
+
+procedure TBase.Create;
+begin
+  if not Assigned(GDataModuleBase) then
+  begin
+    GDataModuleBase := TDataModuleBase.Create(Application);
+    GReferenceCount := 0;
+  end;
+
+  Inc(GReferenceCount);
+  Supports(GDataModuleBase, StringToGUID('{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}'), FBase);
+  Supports(GDataModuleBase.FSmtp, StringToGUID('{B01FB75A-0399-439F-AAE6-2F2EDA3C90FF}'), FSmtp);
+end;
+
+procedure TBase.Destroy;
+begin
+  FSmtp := nil;
+  FBase := nil;
+  Dec(GReferenceCount);
+
+  if GReferenceCount = 0 then
+  begin
+    GDataModuleBase.Free;
+    GDataModuleBase := nil;
+  end;
+end;
+
+function TBase.GetObject: TObject;
+begin
+  Result := GDataModuleBase;
+end;
+
 { TSmtp }
 
-procedure TSmtp.Create;
+procedure TSmtp.UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAttachmentDataList);
 begin
-  Supports(GDataModuleSmtp, StringToGUID('{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}'), FDataModuleSmtp);
+  with FBase do
+  begin
+    if Assigned(IdMessage1) then
+      IdMessage1.Free;
+
+    IdMessage1 := TIdMessage.Create(nil);
+    with IdMessage1 do
+    begin
+      Clear;
+      Sender.Name := SmtpData.DisplayName;
+      Sender.Address := SmtpData.Username;
+      Recipients.Clear;
+      Recipients.Add;
+      Priority := mpNormal;
+      Subject := ASubject;
+      MessageParts.Clear;
+    end;
+
+    with TIdMessageBuilderHtml.Create do
+    try
+      Clear;
+      if MailData.IsHtml then
+      begin
+        HtmlCharSet := 'UTF-8';
+        Html.Text := ABody;
+      end
+      else
+      begin
+        PlainTextCharSet := 'UTF-8';
+        PlainText.Text := ABody;
+      end;
+
+      for var i in SAttachmentDataList do
+      begin
+        var bs := TMemoryStream.Create;
+        with bs do
+        begin
+          LoadFromFile(i.Path);
+          Attachments.Add(bs, '', i.Id);
+        end;
+      end;
+      FillMessage(IdMessage1);
+    finally
+      Free;
+    end;
+  end;
 end;
 
-procedure TSmtp.Destroy;
+constructor TSmtp.Create(ADataModuleBase: TDataModuleBase);
 begin
-  FDataModuleSmtp := nil;
+  FBase := ADataModuleBase;
 end;
 
-function TSmtp.GetObject: TObject;
+destructor TSmtp.Destroy;
 begin
-  Result := GDataModuleSmtp;
+  FBase := nil;
+  inherited;
 end;
 
-initialization
-  Application.CreateForm(TDataModuleSmtp, GDataModuleSmtp);
-  RegisterClass(TSmtp);
+function TSmtp.Login: Boolean;
+begin
+  with FBase do
+  begin
+    IWait.StartWait;
 
+    try
+      IdSMTP1 := TIdSmtp.Create(nil);
+      IdSSLIOHandlerSocketOpenSSL1 := TIdSSLIOHandlerSocketOpenSSL.Create(nil);
+      with IdSMTP1 do
+      try
+        Host := SmtpData.Host;
+        Port := SmtpData.Port;
+        Username := SmtpData.Username;
+        Password := SmtpData.Password;
+        if SmtpData.UseSSL then
+        begin
+          IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Method := sslvSSLv23;
+          IOHandler := IdSSLIOHandlerSocketOpenSSL1;
+          if SmtpData.UseStartTLS then
+            UseTLS := utUseRequireTLS
+          else
+            UseTLS := utUseImplicitTLS;
+        end
+        else
+          UseTLS := utNoTLSSupport;
 
-finalization
-  GDataModuleSmtp.Free;
-  GDataModuleSmtp := nil;
-  UnRegisterClass(TSmtp);
+        ReadTimeout := 5000;
+        try
+          Connect;
+        except
+          on rt: EIdReadTimeout do
+            MessageBox(0, 'µÇÂ½³¬Ê±£¬ÇëÖØÆôÈí¼þÖØÊÔ', '', 0);
+        end;
+
+        Authenticate;
+        CreateDefaultTable;
+      except
+
+      end;
+    finally
+      Result := IdSMTP1.Connected;
+      IWait.StopWait;
+    end;
+  end;
+end;
+
+function TSmtp.Send(Address, DisplayName: string): TSendData;
+var
+  sdList: TSendDataList;
+begin
+  with FBase do
+  begin
+    if DisplayName.Trim = '' then
+      DisplayName := Address.Remove(Address.IndexOf('@'));
+
+    Result.DisplayName := DisplayName;
+    Result.Address := Address;
+
+    with FDQuery1 do
+    try
+      IWait.StartWait;
+      if Find(Address, sdList) > 0 then
+      begin
+        Result := sdList[sdList.Count - 1];
+        if Result.State = ssSuccess then
+        begin
+          if not SettingsData.RepeatSend then
+          begin
+            Result.State := ssRepeat;
+            Exit;
+          end;
+        end;
+      end;
+
+      with IdMessage1 do
+      begin
+        Recipients[0].Address := Result.Address;
+        Recipients[0].Name := Result.DisplayName;
+      end;
+
+      with Result do
+      begin
+        var ret := True;
+        try
+          ErrorCode := 250;
+          ErrorText := '';
+          IdSMTP1.Send(IdMessage1);
+        except
+          on E: EIdSMTPReplyError do
+          begin
+            ErrorCode := E.ErrorCode;
+            ErrorText := E.Message;
+            ret := False;
+          end;
+        end;
+
+        if ret then
+          State := ssSuccess
+        else
+          State := ssError;
+        Time := Now;
+        Sql.Text := 'Insert Into ' + TableName + '(DisplayName,Address,Success,ErrorCode,ErrorText,Time) Values(:DisplayName,:Address,:Success,:ErrorCode,:ErrorText,:Time)';
+        ParamByName('DisplayName').AsWideString := DisplayName;
+        ParamByName('Address').AsWideString := Address;
+        ParamByName('Success').AsWideString := ret.ToString(TUseBoolStrs.True);
+        ParamByName('ErrorCode').AsInteger := ErrorCode;
+        ParamByName('ErrorText').AsWideString := ErrorText;
+        ParamByName('Time').AsWideString := FormatDateTime('yyyy-mm-dd hh:nn:ss', Time);
+        ExecSQL;
+      end;
+    finally
+      Close;
+      IWait.StopWait;
+    end;
+  end;
+end;
 
 end.
 
