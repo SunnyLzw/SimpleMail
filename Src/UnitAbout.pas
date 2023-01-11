@@ -27,7 +27,7 @@ type
     { Public declarations }
   end;
 
-  TAbout = class(TInterfacedPersistent, IForm, IDialog)
+  TAbout = class(TInterfacedObject, IForm, IDialog)
   private
     FFormAbout: TFormAbout;
   public

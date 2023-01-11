@@ -60,7 +60,7 @@ type
     { Public declarations }
   end;
 
-  TSettings = class(TInterfacedPersistent, IForm, IDialog)
+  TSettings = class(TInterfacedObject, IForm, IDialog)
   private
     FFormSettings: TFormSettings;
   public

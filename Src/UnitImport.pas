@@ -32,7 +32,7 @@ type
     { Public declarations }
   end;
 
-  TImport = class(TInterfacedPersistent, IForm, IDialog, IImport)
+  TImport = class(TInterfacedObject, IForm, IDialog, IImport)
   private
     FFormImport: TFormImport;
     FImport: IImport;

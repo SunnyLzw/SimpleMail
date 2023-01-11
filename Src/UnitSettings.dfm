@@ -32,8 +32,6 @@ object FormSettings: TFormSettings
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitWidth = 443
-      ExplicitHeight = 317
       object PageControl1: TPageControl
         Left = 0
         Top = 0
@@ -42,8 +40,6 @@ object FormSettings: TFormSettings
         ActivePage = TabSheet1
         Align = alClient
         TabOrder = 0
-        ExplicitWidth = 443
-        ExplicitHeight = 317
         object TabSheet1: TTabSheet
           Caption = #37197#32622
           object Label2: TLabel
@@ -107,6 +103,7 @@ object FormSettings: TFormSettings
             Width = 152
             Height = 23
             TabOrder = 0
+            OnChange = ModifySmtpData
           end
           object RadioGroupUseSSL: TRadioGroup
             Left = 8
@@ -118,7 +115,8 @@ object FormSettings: TFormSettings
             Items.Strings = (
               #26159
               #21542)
-            TabOrder = 1
+            TabOrder = 5
+            OnClick = ModifySmtpData
           end
           object CheckBoxUseStartTLS: TCheckBox
             Left = 8
@@ -126,37 +124,42 @@ object FormSettings: TFormSettings
             Width = 210
             Height = 17
             Caption = #20248#20808#20351#29992'StartTLS'#65288#21462#20915#20110#26381#21153#22120#65289
-            TabOrder = 2
+            TabOrder = 6
+            OnClick = ModifySmtpData
           end
           object EditDisplayName: TEdit
             Left = 66
-            Top = 127
+            Top = 123
             Width = 152
             Height = 23
-            TabOrder = 3
+            TabOrder = 4
+            OnChange = ModifySmtpData
           end
           object EditPort: TEdit
             Left = 66
-            Top = 98
+            Top = 95
             Width = 152
             Height = 23
             NumbersOnly = True
-            TabOrder = 4
+            TabOrder = 3
+            OnChange = ModifySmtpData
           end
           object EditPassword: TEdit
             Left = 66
-            Top = 69
+            Top = 39
             Width = 152
             Height = 23
             PasswordChar = '*'
-            TabOrder = 5
+            TabOrder = 1
+            OnChange = ModifySmtpData
           end
           object EditHost: TEdit
             Left = 66
-            Top = 40
+            Top = 67
             Width = 152
             Height = 23
-            TabOrder = 6
+            TabOrder = 2
+            OnChange = ModifySmtpData
           end
         end
         object TabSheet2: TTabSheet
@@ -186,7 +189,7 @@ object FormSettings: TFormSettings
             Width = 81
             Height = 17
             Caption = #21457#36865#38388#38548
-            TabOrder = 2
+            TabOrder = 3
             OnClick = ModifySettingsData
           end
           object SpinEditStopNumber: TSpinEdit
@@ -197,7 +200,7 @@ object FormSettings: TFormSettings
             Increment = 5
             MaxValue = 100
             MinValue = 5
-            TabOrder = 3
+            TabOrder = 2
             Value = 5
             OnChange = ModifySettingsData
           end
@@ -280,7 +283,7 @@ object FormSettings: TFormSettings
             Width = 153
             Height = 17
             Caption = #26085#24535#20351#29992#19981#21516#39068#33394#26631#35760
-            TabOrder = 1
+            TabOrder = 2
             OnClick = ModifySettingsData
           end
           object ComboBox1: TComboBox
@@ -288,7 +291,7 @@ object FormSettings: TFormSettings
             Top = 39
             Width = 121
             Height = 23
-            TabOrder = 2
+            TabOrder = 1
             OnSelect = ModifySettingsData
           end
         end

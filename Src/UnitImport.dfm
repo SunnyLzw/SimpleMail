@@ -4,7 +4,7 @@ object FormImport: TFormImport
   BorderStyle = bsDialog
   Caption = #23548#20837
   ClientHeight = 264
-  ClientWidth = 181
+  ClientWidth = 185
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET

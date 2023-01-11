@@ -17,7 +17,7 @@ uses
 type
   TSmtp = class;
 
-  TDataModuleBase = class(TDataModule, IBase)
+  TDataModuleBase = class(TDataModule, IBase, ISmtp)
     FDConnection1: TFDConnection;
     FDQuery1: TFDQuery;
     FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
@@ -29,7 +29,7 @@ type
     procedure DataModuleDestroy(Sender: TObject);
   private
     { Private declarations }
-    FSmtp: TSmtp;
+    FSmtp: ISmtp;
     TableName: string;
     IWait: IFDGUIxWaitCursor;
     SettingsData: TSettingsData;
@@ -56,9 +56,11 @@ type
     function EnumAll(var ASendDataList: TSendDataList): Integer;
     function EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
     function EnumAllSuccessMailAddress: TStrings;
+  public
+    property Smtp: ISmtp read FSmtp implements ISmtp;
   end;
 
-  TSmtp = class(TInterfacedPersistent, ISmtp)
+  TSmtp = class(TInterfacedObject, ISmtp)
   private
     FBase: TDataModuleBase;
   public
@@ -69,7 +71,7 @@ type
     function Send(Address: string; DisplayName: string = ''): TSendData;
   end;
 
-  TBase = class(TInterfacedPersistent, IForm, IBase, ISmtp)
+  TBase = class(TInterfacedObject, IForm, IBase, ISmtp)
   private
     FBase: IBase;
     FSmtp: ISmtp;
@@ -113,7 +115,7 @@ end;
 
 procedure TDataModuleBase.DataModuleCreate(Sender: TObject);
 begin
-  FSmtp := TSmtp.Create(Self);
+  Supports(TSmtp.Create(Self), StringToGUID('{B01FB75A-0399-439F-AAE6-2F2EDA3C90FF}'), FSmtp);
   if not TDirectory.Exists('.\Data') then
     TDirectory.CreateDirectory('.\Data');
 
@@ -150,7 +152,6 @@ end;
 
 procedure TDataModuleBase.DataModuleDestroy(Sender: TObject);
 begin
-  FSmtp.Free;
   FSmtp := nil;
   IdSMTP1.Disconnect;
   IWait := nil;
@@ -425,7 +426,8 @@ end;
 function TDataModuleBase.TableIsExist: Boolean;
 begin
   TableName := 'BeenSend_' + StrToBin(SmtpData.Username);
-  FDQuery1.SQL.Text := 'Select * From sqlite_master Where table_name = ''' + TableName + '''';
+  FDQuery1.SQL.Text := 'Select * From sqlite_master Where tbl_name = ''' + TableName + '''';
+  Result := FDQuery1.RecordCount > 0;
 end;
 
 procedure TDataModuleBase.UpdateMailData;
@@ -508,7 +510,7 @@ begin
 
   Inc(GReferenceCount);
   Supports(GDataModuleBase, StringToGUID('{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}'), FBase);
-  Supports(GDataModuleBase.FSmtp, StringToGUID('{B01FB75A-0399-439F-AAE6-2F2EDA3C90FF}'), FSmtp);
+  Supports(GDataModuleBase, StringToGUID('{B01FB75A-0399-439F-AAE6-2F2EDA3C90FF}'), FSmtp);
 end;
 
 procedure TBase.Destroy;
@@ -535,10 +537,6 @@ procedure TSmtp.UpdateMessage(ASubject, ABody: string; SAttachmentDataList: TAtt
 begin
   with FBase do
   begin
-    if Assigned(IdMessage1) then
-      IdMessage1.Free;
-
-    IdMessage1 := TIdMessage.Create(nil);
     with IdMessage1 do
     begin
       Clear;
@@ -595,47 +593,45 @@ end;
 function TSmtp.Login: Boolean;
 begin
   with FBase do
-  begin
+  try
     IWait.StartWait;
-
+    with IdSMTP1 do
     try
-      IdSMTP1 := TIdSmtp.Create(nil);
-      IdSSLIOHandlerSocketOpenSSL1 := TIdSSLIOHandlerSocketOpenSSL.Create(nil);
-      with IdSMTP1 do
-      try
-        Host := SmtpData.Host;
-        Port := SmtpData.Port;
-        Username := SmtpData.Username;
-        Password := SmtpData.Password;
-        if SmtpData.UseSSL then
-        begin
-          IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Method := sslvSSLv23;
-          IOHandler := IdSSLIOHandlerSocketOpenSSL1;
-          if SmtpData.UseStartTLS then
-            UseTLS := utUseRequireTLS
-          else
-            UseTLS := utUseImplicitTLS;
-        end
+      Host := SmtpData.Host;
+      Port := SmtpData.Port;
+      Username := SmtpData.Username;
+      Password := SmtpData.Password;
+      IOHandler := nil;
+      if SmtpData.UseSSL then
+      begin
+        IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Method := sslvSSLv23;
+        IOHandler := IdSSLIOHandlerSocketOpenSSL1;
+        if SmtpData.UseStartTLS then
+          UseTLS := utUseRequireTLS
         else
-          UseTLS := utNoTLSSupport;
+          UseTLS := utUseImplicitTLS;
+      end
+      else
+        UseTLS := utNoTLSSupport;
 
-        ReadTimeout := 5000;
-        try
-          Connect;
-        except
-          on rt: EIdReadTimeout do
-            MessageBox(0, '登陆超时，请重启软件重试', '', 0);
-        end;
+      ReadTimeout := 5000;
+      Connect;
 
-        Authenticate;
-        CreateDefaultTable;
-      except
+      Authenticate;
+      CreateDefaultTable;
+    except
+      on rt: EIdReadTimeout do
+        MessageBox(0, '与服务器连接超时，请重试', '', 0);
 
-      end;
-    finally
-      Result := IdSMTP1.Connected;
-      IWait.StopWait;
+      on nc: EIdNotConnected do
+        MessageBox(0, '与服务器连接失败，请重试', '', 0);
+
+      else
+        MessageBox(0, '登录失败，请重试', '', 0);
     end;
+  finally
+    Result := IdSMTP1.Connected;
+    IWait.StopWait;
   end;
 end;
 

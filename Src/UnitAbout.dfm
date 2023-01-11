@@ -94,7 +94,7 @@ object FormAbout: TFormAbout
       Top = 29
       Width = 90
       Height = 15
-      Caption = #29256#26412#65306'1.1.11.239'
+      Caption = #29256#26412#65306'1.1.11.255'
       IsControl = True
     end
     object Label3: TLabel

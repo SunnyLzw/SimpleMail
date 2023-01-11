@@ -29,8 +29,6 @@ object FormMain: TFormMain
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 860
-    ExplicitHeight = 507
     object Splitter1: TSplitter
       Left = 0
       Top = 220
@@ -53,7 +51,7 @@ object FormMain: TFormMain
       BevelOuter = bvNone
       ParentBackground = False
       TabOrder = 0
-      ExplicitWidth = 860
+      ExplicitWidth = 856
       object Splitter2: TSplitter
         Left = 160
         Top = 0
@@ -94,7 +92,7 @@ object FormMain: TFormMain
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitWidth = 693
+        ExplicitWidth = 689
         object ListView1: TListView
           Left = 0
           Top = 0
@@ -130,6 +128,7 @@ object FormMain: TFormMain
           OnCustomDrawItem = ListView1CustomDrawItem
           OnData = ListView1Data
           OnDeletion = ListView1Deletion
+          ExplicitWidth = 693
         end
       end
     end
@@ -142,7 +141,7 @@ object FormMain: TFormMain
       BevelKind = bkFlat
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitWidth = 860
+      ExplicitWidth = 856
       ExplicitHeight = 284
       object Splitter3: TSplitter
         Left = 517
@@ -164,7 +163,7 @@ object FormMain: TFormMain
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 513
+        ExplicitWidth = 509
         ExplicitHeight = 280
         DesignSize = (
           517
@@ -191,7 +190,7 @@ object FormMain: TFormMain
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
           OnChange = ModifyMailData
-          ExplicitWidth = 342
+          ExplicitWidth = 338
         end
         object MemoBody: TMemo
           Left = 38
@@ -204,7 +203,7 @@ object FormMain: TFormMain
           WantTabs = True
           WordWrap = False
           OnChange = ModifyMailData
-          ExplicitWidth = 445
+          ExplicitWidth = 441
           ExplicitHeight = 232
         end
         object CheckBoxIsHtml: TCheckBox
@@ -216,7 +215,7 @@ object FormMain: TFormMain
           Caption = #26159#21542'Html'#26684#24335
           TabOrder = 2
           OnClick = ModifyMailData
-          ExplicitLeft = 386
+          ExplicitLeft = 382
         end
       end
       object PanelAttachment: TPanel
@@ -227,7 +226,7 @@ object FormMain: TFormMain
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 516
+        ExplicitLeft = 512
         ExplicitHeight = 280
         DesignSize = (
           340

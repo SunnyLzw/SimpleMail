@@ -29,13 +29,12 @@ type
 
   TPackage = class(TCustomPackage)
   private
-    FObject: TObject;
-    FIsSupported: Boolean;
+    FInterface: TInterfacedObject;
   private
     procedure OnCreate; override;
     procedure OnDestroy; override;
   private
-    procedure Supports(AIID: TGUID; out AIntf);
+    function Supports(AIID: TGUID; out AIntf): Boolean;
   end;
 
   TForm = class(TPackage, IForm)
@@ -138,23 +137,17 @@ end;
 
 procedure TPackage.OnCreate;
 begin
-  FObject := FInstanceType.MetaclassType.Create;
-  FIsSupported := False;
+  FInterface := TInterfacedObject(FInstanceType.MetaclassType.Create);
 end;
 
 procedure TPackage.OnDestroy;
 begin
-  if not FIsSupported then
-    if Assigned(FObject) then
-      FObject.Free;
-
-  FObject := nil;
+  FInterface := nil;
 end;
 
-procedure TPackage.Supports(AIID: TGUID; out AIntf);
+function TPackage.Supports(AIID: TGUID; out AIntf): Boolean;
 begin
-  System.SysUtils.Supports(FObject, AIID, AIntf);
-  FIsSupported := True;
+  Result := System.SysUtils.Supports(FInterface, AIID, AIntf);
 end;
 
 { TForm }

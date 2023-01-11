@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Generics.Collections, System.IOUtils,
-  UnitPluginFrame;
+  System.Rtti, UnitPluginFrame;
 
 type
   PPluginObject = ^TPluginObject;
@@ -27,9 +27,6 @@ type
   end;
 
 implementation
-
-uses
-  System.Rtti;
 
 { TPluginManager }
 
@@ -56,7 +53,6 @@ procedure TPluginManager.EnumPlugin(APluginPath: string);
 var
   LPackage: TRttiPackage;
   LType: TRttiType;
-  LClass: TRttiInstanceType;
   LPluginObject: PPluginObject;
   LHandle: THandle;
   LPluginInterface: IPlugin;
@@ -84,16 +80,14 @@ begin
           if not (LType.BaseType = GetType(TPlugin)) then
             Continue;
 
-          LClass := LType as TRttiInstanceType;
-          Supports(LClass.MetaclassType.Create as TPlugin, StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), LPluginInterface);
-          if not Assigned(LPluginInterface) then
+          if not Supports((LType as TRttiInstanceType).MetaclassType.Create, StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), LPluginInterface) then
           begin
             UnloadPackage(LHandle);
             Continue;
           end;
           New(LPluginObject);
-          LPluginObject.ModuleHandle := LHandle;
           LPluginInterface.OnLoad;
+          LPluginObject.ModuleHandle := LHandle;
           LPluginObject.PluginData := LPluginInterface.GetPluginData;
           LPluginObject.PluginInterface := LPluginInterface;
           FPlugins.Add(LPluginObject);

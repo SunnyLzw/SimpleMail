@@ -122,7 +122,7 @@ type
     procedure Update;
   end;
 
-  TMain = class(TInterfacedPersistent, IForm)
+  TMain = class(TInterfacedObject, IForm)
   private
     FFormMain: TFormMain;
   public
@@ -697,80 +697,84 @@ begin
     ButtonImport.Enabled := False;
     StatusBarState.Panels[3].Text := '状态：正在验证';
 
-    FPackageBase.Smtp.Login;
-    FPackageBase.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
+    repeat
+      if not FPackageBase.Smtp.Login then
+          Break;
 
-    var i: Integer := 0;
-    while ListBoxMailAddress.Items.Count <> 0 do
-    begin
-      if Terminated then
-        Break;
+      FPackageBase.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
 
-      Application.ProcessMessages;
-      StatusBarState.Panels[3].Text := '状态：正在发送';
-
-      var log: PSendLog;
-      New(log);
-      with log^ do
+      var i: Integer := 0;
+      while ListBoxMailAddress.Items.Count <> 0 do
       begin
-        Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', Now);
-        var addr := ListBoxMailAddress.Items[0].Trim;
-        Address := addr;
+        if Terminated then
+          Break;
 
-        var sd := FPackageBase.Smtp.Send(addr);
-        New(Data);
-        Data^ := sd;
-        case sd.State of
-          ssSuccess:
-            begin
-              State := '成功';
-              log := '邮件已成功送达服务器';
-            end;
-          ssRepeat:
-            begin
-              State := '重复';
-              log := '此邮箱地址在：' + FormatDateTime('yyyy-mm-dd hh:nn:ss', sd.Time) + '已有发送记录';
-            end;
-          ssError:
-            begin
-              State := '失败';
-              log := '错误代码：' + sd.ErrorCode.ToString + '，' + sd.ErrorText;
-            end;
-        else
+        Application.ProcessMessages;
+        StatusBarState.Panels[3].Text := '状态：正在发送';
 
+        var log: PSendLog;
+        New(log);
+        with log^ do
+        begin
+          Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', Now);
+          var addr := ListBoxMailAddress.Items[0].Trim;
+          Address := addr;
+
+          var sd := FPackageBase.Smtp.Send(addr);
+          New(Data);
+          Data^ := sd;
+          case sd.State of
+            ssSuccess:
+              begin
+                State := '成功';
+                log := '邮件已成功送达服务器';
+              end;
+            ssRepeat:
+              begin
+                State := '重复';
+                log := '此邮箱地址在：' + FormatDateTime('yyyy-mm-dd hh:nn:ss', sd.Time) + '已有发送记录';
+              end;
+            ssError:
+              begin
+                State := '失败';
+                log := '错误代码：' + sd.ErrorCode.ToString + '，' + sd.ErrorText;
+              end;
+          else
+
+          end;
+
+          if Data.State = ssSuccess then
+            Inc(i);
         end;
 
-        if Data.State = ssSuccess then
-          Inc(i);
+        LogList.Add(log);
+        ListView1.Items.Count := ListView1.Items.Count + 1;
+        ListView1.Items[0].MakeVisible(False);
+        ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
+
+        ListBoxMailAddress.Items.Delete(0);
+        UpdateAddress(False);
+
+        if FPackageBase.Base.GetSettingsData.AutoStop then
+          if i >= FPackageBase.Base.GetSettingsData.StopNumber then
+          begin
+            StopSend;
+            Break;
+          end;
+
+        if FPackageBase.Base.GetSettingsData.UseInterval then
+          Sleep(FPackageBase.Base.GetSettingsData.IntervalTime);
       end;
 
-      LogList.Add(log);
-      ListView1.Items.Count := ListView1.Items.Count + 1;
-      ListView1.Items[0].MakeVisible(False);
-      ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
-
-      ListBoxMailAddress.Items.Delete(0);
-      UpdateAddress(False);
-
-      if FPackageBase.Base.GetSettingsData.AutoStop then
-        if i >= FPackageBase.Base.GetSettingsData.StopNumber then
-        begin
-          StopSend;
-          Break;
-        end;
-
-      if FPackageBase.Base.GetSettingsData.UseInterval then
-        Sleep(FPackageBase.Base.GetSettingsData.IntervalTime);
-    end;
-
-    StatusBarState.Panels[3].Text := '状态：空闲';
-    UpdateAddress;
-    ButtonImport.Enabled := True;
-    ListBoxMailAddress.Enabled := True;
-    Caption := FPackageBase.Base.GetSmtpData.Username;
-    PanelMessage.Enabled := True;
-    PanelMailAddress.Enabled := True;
-    ButtonSendMail.Action := ActionSendStart;
+      StatusBarState.Panels[3].Text := '状态：空闲';
+      UpdateAddress;
+      ButtonImport.Enabled := True;
+      ListBoxMailAddress.Enabled := True;
+      Caption := FPackageBase.Base.GetSmtpData.Username;
+      PanelMessage.Enabled := True;
+      PanelMailAddress.Enabled := True;
+      ButtonSendMail.Action := ActionSendStart;
+    until True;
   end;
 end;
 

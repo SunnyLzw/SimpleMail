@@ -31,7 +31,7 @@ type
     procedure OnChecked;
   end;
 
-  TPlugin = class(TInterfacedPersistent, IPlugin)
+  TPlugin = class(TInterfacedObject, IPlugin)
   protected
     FPluginData: TPluginData;
     FMenuItem: TMenuItem;

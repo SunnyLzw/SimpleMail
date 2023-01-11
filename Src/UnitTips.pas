@@ -24,7 +24,7 @@ type
     { Public declarations }
   end;
 
-  TTips = class(TInterfacedPersistent, IForm, ITips)
+  TTips = class(TInterfacedObject, IForm, ITips)
   private
     FFormTips: TFormTips;
     FTips: ITips;
