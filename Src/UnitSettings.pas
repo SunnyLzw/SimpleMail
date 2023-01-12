@@ -32,32 +32,41 @@ type
     ComboBox1: TComboBox;
     FileSaveDialog1: TFileSaveDialog;
     FileOpenDialog1: TFileOpenDialog;
-    Label2: TLabel;
-    Label1: TLabel;
-    EditUsername: TEdit;
-    Label3: TLabel;
-    RadioGroupUseSSL: TRadioGroup;
-    Label5: TLabel;
-    Label4: TLabel;
+    PanelList: TPanel;
+    Splitter1: TSplitter;
+    TreeView1: TTreeView;
+    PageControl2: TPageControl;
+    TabSheet5: TTabSheet;
     CheckBoxUseStartTLS: TCheckBox;
-    ButtonSave: TSpeedButton;
-    ButtonLoad: TSpeedButton;
+    RadioGroupUseSSL: TRadioGroup;
+    EditUsername: TEdit;
     EditDisplayName: TEdit;
-    EditPort: TEdit;
-    EditPassword: TEdit;
     EditHost: TEdit;
+    EditPassword: TEdit;
+    EditPort: TEdit;
+    Label3: TLabel;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label5: TLabel;
+    ButtonLoad: TSpeedButton;
+    ButtonSave: TSpeedButton;
+    Label4: TLabel;
     procedure ModifySettingsData(Sender: TObject);
     procedure ModifySmtpData(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure ButtonLoadClick(Sender: TObject);
     procedure ButtonSaveClick(Sender: TObject);
+    procedure Splitter1CanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
+    procedure TreeView1Click(Sender: TObject);
   private
     { Private declarations }
     IsModifed: Boolean;
     FPackageBase: TBase;
   public
     { Public declarations }
+    procedure CreateTree;
+    procedure SwitchTabSheet(ATabSheet: TTabSheet);
   end;
 
   TSettings = class(TInterfacedObject, IForm, IDialog)
@@ -141,11 +150,46 @@ begin
   end;
 end;
 
+procedure TFormSettings.CreateTree;
+
+  procedure CreateChild(APageControl: TPageControl);
+  var
+    ts: TTabSheet;
+    tn: TTreeNode;
+  begin
+    if APageControl.Parent.Name <> 'PanelPage' then
+      APageControl.Tag := NativeInt(APageControl.Parent.Tag);
+
+    for var i := 0 to APageControl.PageCount - 1 do
+    begin
+      ts := APageControl.Pages[i];
+      ts.TabVisible := False;
+      tn := TreeView1.Items.AddChildObject(TTreeNode(APageControl.Tag), ts.Caption, ts);
+      ts.Tag := NativeInt(tn);
+    end;
+    APageControl.Pages[0].Visible := True;
+  end;
+
+var
+  pc: TPageControl;
+begin
+  for var i := 0 to ComponentCount - 1 do
+  begin
+    if not (Components[i] is TPageControl) then
+      Continue;
+
+    pc := Components[i] as TPageControl;
+    CreateChild(pc);
+  end;
+end;
+
 procedure TFormSettings.FormCreate(Sender: TObject);
 begin
   FPackageBase := UnitPackage.TBase.Create;
   ComboBox1.Items.AddStrings(['Flat', 'Standard', 'UltraFlat', 'Office11']);
 
+  CreateTree;
+  TreeView1.Select(TTreeNode(FindComponent('TabSheet5').Tag));
   if TFile.Exists('.\Res\Load.png') then
   begin
     var png: TPngImage;
@@ -262,6 +306,64 @@ begin
     CheckBoxUseStartTLS.Enabled := UseSSL;
   end;
   FPackageBase.Base.SetSmtpData(sd);
+end;
+
+procedure TFormSettings.Splitter1CanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
+begin
+  Accept := Height - NewSize > 200;
+end;
+
+procedure TFormSettings.SwitchTabSheet(ATabSheet: TTabSheet);
+
+  procedure ActiveParent(ATabSheet: TTabSheet);
+  var
+    pc: TPageControl;
+    ts: TTabSheet;
+  begin
+    TreeView1.MultiSelect := False;
+    ts := ATabSheet;
+    pc := ts.Parent as TPageControl;
+    pc.ActivePage := ts;
+    if pc.Parent.Name = 'PanelPage' then
+      Exit;
+
+    ts := pc.Parent as TTabSheet;
+    ActiveParent(ts);
+  end;
+
+var
+  pc: TPageControl;
+  ts: TTabSheet;
+  tn: TTreeNode;
+begin
+  for var i := 0 to ComponentCount - 1 do
+  begin
+    if not (Components[i] is TPageControl) then
+      Continue;
+
+    pc := Components[i] as TPageControl;
+
+    for var j := 0 to pc.PageCount - 1 do
+    begin
+      ts := pc.Pages[j];
+      if ts = ATabSheet then
+      begin
+        tn := TTreeNode(ts.Tag);
+        if tn.HasChildren then
+        begin
+          //TreeView1.Select(tn.getFirstChild);
+          ts := tn.getFirstChild.Data;
+        end;
+        ActiveParent(ts);
+        Exit;
+      end;
+    end;
+  end;
+end;
+
+procedure TFormSettings.TreeView1Click(Sender: TObject);
+begin
+  SwitchTabSheet(TreeView1.Selected.Data);
 end;
 
 { TSettings }
