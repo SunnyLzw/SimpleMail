@@ -38,7 +38,8 @@ type
     Postfixs: TStrings;
   public
     { Public declarations }
-    function Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
+    function QueryBeenSend(AAddress: string): TSendDataList; overload;
+    function QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer; overload;
     procedure CreateDefaultTable;
     function TableIsExist: Boolean;
     function GetPostfixs: TStrings;
@@ -177,7 +178,6 @@ begin
   begin
     Open('Select * From ' + TableName);
     ASendDataList := TSendDataList.Create;
-    ASendDataList.Count := RecordCount;
     First;
     Result := 0;
     while not Eof do
@@ -241,49 +241,6 @@ begin
   begin
     Open('Select * From ' + TableName + ' Where Time like ''' + ADate + '%''');
     ASendDataList := TSendDataList.Create;
-    ASendDataList.Count := RecordCount;
-    First;
-    Result := 0;
-    while not Eof do
-      with sd do
-      begin
-        State := ssError;
-        if FieldByName('Success').AsWideString.ToBoolean then
-          State := ssSuccess;
-        DisplayName := FieldByName('DisplayName').AsWideString;
-        Address := FieldByName('Address').AsWideString;
-        ErrorCode := FieldByName('ErrorCode').AsInteger;
-        ErrorText := FieldByName('ErrorText').AsWideString;
-        Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
-        ASendDataList.Add(sd);
-        Inc(Result);
-        Next;
-      end;
-    Close;
-  end;
-end;
-
-function TDataModuleBase.Find(AAddress: string; var ASendDataList: TSendDataList): Integer;
-var
-  fs: TFormatSettings;
-  sd: TSendData;
-begin
-  fs.LongDateFormat := 'yyyy-mm-dd';
-  fs.ShortDateFormat := 'yyyy-mm-dd';
-  fs.DateSeparator := '-';
-  fs.LongTimeFormat := 'hh:nn:ss';
-  fs.ShortTimeFormat := 'hh:nn:ss';
-  fs.TimeSeparator := ':';
-
-  Result := 0;
-  if not TableIsExist then
-    Exit;
-
-  with FDQuery1 do
-  begin
-    Open('Select * From ' + TableName + ' Where Address like ''' + AAddress.Replace('@', '_') + '''');
-    ASendDataList := TSendDataList.Create;
-    ASendDataList.Count := RecordCount;
     First;
     Result := 0;
     while not Eof do
@@ -323,6 +280,53 @@ end;
 function TDataModuleBase.GetSmtpData: TSmtpData;
 begin
   Result := SmtpData;
+end;
+
+function TDataModuleBase.QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer;
+var
+  fs: TFormatSettings;
+  sd: TSendData;
+begin
+  fs.LongDateFormat := 'yyyy-mm-dd';
+  fs.ShortDateFormat := 'yyyy-mm-dd';
+  fs.DateSeparator := '-';
+  fs.LongTimeFormat := 'hh:nn:ss';
+  fs.ShortTimeFormat := 'hh:nn:ss';
+  fs.TimeSeparator := ':';
+
+  Result := 0;
+  if not TableIsExist then
+    Exit;
+
+  with FDQuery1 do
+  begin
+    Open('Select * From ' + TableName + ' Where Address like ''%' + AAddress.Replace('@', '_') + '%''');
+    ASendDataList := TSendDataList.Create;
+    First;
+    Result := 0;
+    while not Eof do
+      with sd do
+      begin
+        State := ssError;
+        if FieldByName('Success').AsWideString.ToBoolean then
+          State := ssSuccess;
+        DisplayName := FieldByName('DisplayName').AsWideString;
+        Address := FieldByName('Address').AsWideString;
+        ErrorCode := FieldByName('ErrorCode').AsInteger;
+        ErrorText := FieldByName('ErrorText').AsWideString;
+        Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
+        ASendDataList.Add(sd);
+        Inc(Result);
+        Next;
+      end;
+    Close;
+  end;
+end;
+
+function TDataModuleBase.QueryBeenSend(AAddress: string): TSendDataList;
+begin
+  Result := nil;
+  QueryBeenSend(AAddress, Result);
 end;
 
 function TDataModuleBase.SendAll: Integer;
@@ -650,7 +654,7 @@ begin
     with FDQuery1 do
     try
       IWait.StartWait;
-      if Find(Address, sdList) > 0 then
+      if QueryBeenSend(Address, sdList) > 0 then
       begin
         Result := sdList[sdList.Count - 1];
         if Result.State = ssSuccess then

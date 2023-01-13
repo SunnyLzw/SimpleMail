@@ -110,6 +110,10 @@ type
     procedure AddAttachment(AFileName: string);
     procedure AddAttachments(AFileNames: TStrings);
     procedure UpdateAddress(SetSendButtonState: Boolean = True);
+    procedure PrintLog(ASendLog: TSendLog);
+    procedure PrintSendLog(ASendData: TSendData);
+    procedure PrintSystemLog(AState, AInformation: string);
+    procedure ClearLog;
   end;
 
   TSend = class(TThread)
@@ -156,6 +160,66 @@ begin
     PopupMenu2.Items[0].Enabled := False;
 end;
 
+procedure TFormMain.PrintLog(ASendLog: TSendLog);
+var
+  sl: PSendLog;
+begin
+  New(sl);
+  sl^ := ASendLog;
+
+  LogList.Add(sl);
+  ListView1.Items.Count := ListView1.Items.Count + 1;
+  ListView1.Items[0].MakeVisible(False);
+  ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
+end;
+
+procedure TFormMain.PrintSendLog(ASendData: TSendData);
+var
+  sl: TSendLog;
+begin
+  with sl do
+  begin
+    ImageState := Ord(ASendData.State) - $50;
+    Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', ASendData.Time);
+    Address := ASendData.Address;
+    case ASendData.State of
+      ssSuccess:
+        begin
+          State := '成功';
+          Information := '邮件已成功送达服务器';
+        end;
+      ssRepeat:
+        begin
+          State := '重复';
+          Information := '此邮箱地址在：' + FormatDateTime('yyyy-mm-dd hh:nn:ss', ASendData.Time) + '已有发送记录';
+        end;
+      ssError:
+        begin
+          State := '失败';
+          Information := '错误代码：' + ASendData.ErrorCode.ToString + '，' + ASendData.ErrorText;
+        end;
+    else
+
+    end;
+  end;
+  PrintLog(sl);
+end;
+
+procedure TFormMain.PrintSystemLog(AState, AInformation: string);
+var
+  sl: TSendLog;
+begin
+  with sl do
+  begin
+    ImageState := Ord(ssSystem) - $50;
+    Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', Now);
+    Address := '系统';
+    State := AState;
+    Information := AInformation;
+  end;
+  PrintLog(sl);
+end;
+
 procedure TFormMain.SplitterCanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
 begin
   if (Sender as TSplitter) = Splitter1 then
@@ -183,21 +247,7 @@ end;
 
 procedure TFormMain.StopSend;
 begin
-  var log: PSendLog;
-  New(log);
-  LogList.Add(log);
-  with log^ do
-  begin
-    Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', Now);
-    Address := '系统';
-    New(Data);
-    Data.State := ssStop;
-    State := '重复';
-    log := '已达到设置最大发送数量，自动停止发送';
-  end;
-  ListView1.Items.Count := ListView1.Items.Count + 1;
-  ListView1.Items[0].MakeVisible(False);
-  ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
+  PrintSystemLog('停止', '已达到设置最大发送数量，自动停止发送');
 end;
 
 procedure TFormMain.ModifyMailData(Sender: TObject);
@@ -365,6 +415,11 @@ begin
       AddMailAddress(i);
 end;
 
+procedure TFormMain.ClearLog;
+begin
+  ListView1.Clear;
+end;
+
 procedure TFormMain.ListBoxMailAddressKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = VK_DELETE then
@@ -376,20 +431,17 @@ end;
 
 procedure TFormMain.ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
 begin
-  with Item do
+  var i := LogList.Count - Item.Index - 1;
+  with LogList[i]^ do
   begin
-    if not Assigned(Data) then
-      Exit;
-
-    var sd: PSendData := Data;
-    case sd.State of
+    case TState(ImageState + $50) of
       ssSuccess:
         Sender.Canvas.Brush.Color := clWebYellowGreen;
       ssRepeat:
         Sender.Canvas.Brush.Color := clWebGold;
       ssError:
         Sender.Canvas.Brush.Color := clRed;
-      ssStop:
+      ssSystem:
         Sender.Canvas.Brush.Color := clGray;
     else
 
@@ -403,33 +455,21 @@ end;
 procedure TFormMain.ListView1Data(Sender: TObject; Item: TListItem);
 begin
   var i := LogList.Count - Item.Index - 1;
-  var log := LogList[i];
-  with log^ do
+  var sl := LogList[i];
+  with sl^ do
   begin
+    Item.StateIndex := ImageState;
     Item.SubItems.Add(Time);
     Item.SubItems.Add(Address);
     Item.SubItems.Add(State);
-    Item.SubItems.Add(log);
-    Item.Data := Data;
-    case Data.State of
-      ssSuccess:
-        Item.StateIndex := 0;
-      ssRepeat:
-        Item.StateIndex := 1;
-      ssError:
-        Item.StateIndex := 2;
-      ssStop:
-        Item.StateIndex := 3;
-    else
-
-    end;
+    Item.SubItems.Add(Information);
+    Item.Data := sl;
   end;
 end;
 
 procedure TFormMain.ListView1Deletion(Sender: TObject; Item: TListItem);
 begin
   var i := LogList.Count - Item.Index - 1;
-  Dispose(LogList[i].Data);
   Dispose(LogList[i]);
   LogList.Delete(i);
   ListView1.Items.Count := ListView1.Items.Count - 1;
@@ -621,10 +661,7 @@ end;
 procedure TFormMain.FormDestroy(Sender: TObject);
 begin
   for var i in LogList do
-  begin
-    Dispose(i.Data);
     Dispose(i);
-  end;
   LogList.Free;
 
   for var i in AttachmentList do
@@ -699,7 +736,10 @@ begin
 
     repeat
       if not FPackageBase.Smtp.Login then
-          Break;
+      begin
+        PrintSystemLog('验证', '与服务器验证失败，请重试');
+        Break;
+      end;
 
       FPackageBase.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
 
@@ -712,46 +752,11 @@ begin
         Application.ProcessMessages;
         StatusBarState.Panels[3].Text := '状态：正在发送';
 
-        var log: PSendLog;
-        New(log);
-        with log^ do
-        begin
-          Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', Now);
-          var addr := ListBoxMailAddress.Items[0].Trim;
-          Address := addr;
+        var sd := FPackageBase.Smtp.Send(ListBoxMailAddress.Items[0].Trim);
+        if sd.State = ssSuccess then
+          Inc(i);
 
-          var sd := FPackageBase.Smtp.Send(addr);
-          New(Data);
-          Data^ := sd;
-          case sd.State of
-            ssSuccess:
-              begin
-                State := '成功';
-                log := '邮件已成功送达服务器';
-              end;
-            ssRepeat:
-              begin
-                State := '重复';
-                log := '此邮箱地址在：' + FormatDateTime('yyyy-mm-dd hh:nn:ss', sd.Time) + '已有发送记录';
-              end;
-            ssError:
-              begin
-                State := '失败';
-                log := '错误代码：' + sd.ErrorCode.ToString + '，' + sd.ErrorText;
-              end;
-          else
-
-          end;
-
-          if Data.State = ssSuccess then
-            Inc(i);
-        end;
-
-        LogList.Add(log);
-        ListView1.Items.Count := ListView1.Items.Count + 1;
-        ListView1.Items[0].MakeVisible(False);
-        ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
-
+        PrintSendLog(sd);
         ListBoxMailAddress.Items.Delete(0);
         UpdateAddress(False);
 

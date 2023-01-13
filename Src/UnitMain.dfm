@@ -24,15 +24,17 @@ object FormMain: TFormMain
   object PanelMain: TPanel
     Left = 8
     Top = 8
-    Width = 864
+    Width = 860
     Height = 508
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitWidth = 856
+    ExplicitHeight = 507
     object Splitter1: TSplitter
       Left = 0
       Top = 220
-      Width = 864
+      Width = 860
       Height = 3
       Cursor = crVSplit
       Align = alTop
@@ -44,7 +46,7 @@ object FormMain: TFormMain
     object PanelPrint: TPanel
       Left = 0
       Top = 0
-      Width = 864
+      Width = 860
       Height = 220
       Align = alTop
       BevelKind = bkFlat
@@ -87,7 +89,7 @@ object FormMain: TFormMain
       object PanelLog: TPanel
         Left = 163
         Top = 0
-        Width = 697
+        Width = 693
         Height = 216
         Align = alClient
         BevelOuter = bvNone
@@ -96,7 +98,7 @@ object FormMain: TFormMain
         object ListView1: TListView
           Left = 0
           Top = 0
-          Width = 697
+          Width = 693
           Height = 216
           Align = alClient
           Columns = <
@@ -128,14 +130,15 @@ object FormMain: TFormMain
           OnCustomDrawItem = ListView1CustomDrawItem
           OnData = ListView1Data
           OnDeletion = ListView1Deletion
-          ExplicitWidth = 693
+          ExplicitLeft = 3
+          ExplicitTop = -1
         end
       end
     end
     object PanelMessage: TPanel
       Left = 0
       Top = 223
-      Width = 864
+      Width = 860
       Height = 285
       Align = alClient
       BevelKind = bkFlat
@@ -144,7 +147,7 @@ object FormMain: TFormMain
       ExplicitWidth = 856
       ExplicitHeight = 284
       object Splitter3: TSplitter
-        Left = 517
+        Left = 513
         Top = 0
         Height = 281
         Align = alRight
@@ -158,7 +161,7 @@ object FormMain: TFormMain
       object PanelBody: TPanel
         Left = 0
         Top = 0
-        Width = 517
+        Width = 513
         Height = 281
         Align = alClient
         BevelOuter = bvNone
@@ -166,7 +169,7 @@ object FormMain: TFormMain
         ExplicitWidth = 509
         ExplicitHeight = 280
         DesignSize = (
-          517
+          513
           281)
         object Label1: TLabel
           Left = 0
@@ -185,7 +188,7 @@ object FormMain: TFormMain
         object EditSubject: TEdit
           Left = 38
           Top = 4
-          Width = 346
+          Width = 342
           Height = 22
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
@@ -195,7 +198,7 @@ object FormMain: TFormMain
         object MemoBody: TMemo
           Left = 38
           Top = 32
-          Width = 449
+          Width = 445
           Height = 233
           Anchors = [akLeft, akTop, akRight, akBottom]
           ScrollBars = ssBoth
@@ -207,7 +210,7 @@ object FormMain: TFormMain
           ExplicitHeight = 232
         end
         object CheckBoxIsHtml: TCheckBox
-          Left = 390
+          Left = 386
           Top = 7
           Width = 97
           Height = 17
@@ -219,7 +222,7 @@ object FormMain: TFormMain
         end
       end
       object PanelAttachment: TPanel
-        Left = 520
+        Left = 516
         Top = 0
         Width = 340
         Height = 281

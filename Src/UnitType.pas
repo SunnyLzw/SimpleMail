@@ -25,7 +25,7 @@ type
     IsHtml: Boolean;
   end;
 
-  TState = (ssSuccess = $50, ssRepeat, ssError, ssStop);
+  TState = (ssSuccess = $50, ssRepeat, ssError, ssSystem);
 
   PSendData = ^TSendData;
 
@@ -40,8 +40,8 @@ type
   PSendLog = ^TSendLog;
 
   TSendLog = record
-    Time, Address, State, Log: string;
-    Data: PSendData;
+    ImageState: Integer;
+    Time, Address, State, Information: string;
   end;
 
   PAttachmentData = ^TAttachmentData;
@@ -49,6 +49,8 @@ type
   TAttachmentData = record
     Id, Path: string;
   end;
+
+  PSendDataList = ^TSendDataList;
 
   TSendDataList = TList<TSendData>;
 

@@ -102,12 +102,12 @@
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <Icon_MainIcon>Bin\Res\Icon.ico</Icon_MainIcon>
-        <VerInfo_Keys>CompanyName=Sunny;FileDescription=一个简单的邮件发送器;FileVersion=1.1.11.259;InternalName=$(MSBuildProjectName);LegalCopyright=Sunny;LegalTrademarks=Sunny;OriginalFilename=$(MSBuildProjectName).exe;ProgramID=Sunny.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=一个简单的邮件发送器</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Sunny;FileDescription=一个简单的邮件发送器;FileVersion=1.1.11.264;InternalName=$(MSBuildProjectName);LegalCopyright=Sunny;LegalTrademarks=Sunny;OriginalFilename=$(MSBuildProjectName).exe;ProgramID=Sunny.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=一个简单的邮件发送器</VerInfo_Keys>
         <UWP_DelphiLogo44>Bin\Res\Icon.ico</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>Bin\Res\Icon.ico</UWP_DelphiLogo150>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_Release>11</VerInfo_Release>
-        <VerInfo_Build>259</VerInfo_Build>
+        <VerInfo_Build>264</VerInfo_Build>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <UsePackages>true</UsePackages>
         <DCC_UsePackage>smType;$(DCC_UsePackage)</DCC_UsePackage>
