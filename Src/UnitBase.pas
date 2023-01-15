@@ -38,8 +38,7 @@ type
     Postfixs: TStrings;
   public
     { Public declarations }
-    function QueryBeenSend(AAddress: string): TSendDataList; overload;
-    function QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer; overload;
+    function QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer;
     procedure CreateDefaultTable;
     function TableIsExist: Boolean;
     function GetPostfixs: TStrings;
@@ -321,12 +320,6 @@ begin
       end;
     Close;
   end;
-end;
-
-function TDataModuleBase.QueryBeenSend(AAddress: string): TSendDataList;
-begin
-  Result := nil;
-  QueryBeenSend(AAddress, Result);
 end;
 
 function TDataModuleBase.SendAll: Integer;

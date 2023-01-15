@@ -3,8 +3,8 @@ object FormSettings: TFormSettings
   Top = 0
   BorderStyle = bsDialog
   Caption = #35774#32622
-  ClientHeight = 259
-  ClientWidth = 363
+  ClientHeight = 258
+  ClientWidth = 359
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -344,7 +344,6 @@ object FormSettings: TFormSettings
         Indent = 19
         TabOrder = 0
         OnClick = TreeView1Click
-        ExplicitHeight = 251
       end
     end
   end

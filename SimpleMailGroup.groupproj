@@ -3,7 +3,7 @@
         <ProjectGuid>{1355E7D3-22DA-4961-B4F0-7AFEB80DD934}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="smPlugin.dproj">
+        <Projects Include="Plugin.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="smType.dproj">
@@ -38,14 +38,14 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="smPlugin">
-        <MSBuild Projects="smPlugin.dproj"/>
+    <Target Name="Plugin">
+        <MSBuild Projects="Plugin.dproj"/>
     </Target>
-    <Target Name="smPlugin:Clean">
-        <MSBuild Projects="smPlugin.dproj" Targets="Clean"/>
+    <Target Name="Plugin:Clean">
+        <MSBuild Projects="Plugin.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="smPlugin:Make">
-        <MSBuild Projects="smPlugin.dproj" Targets="Make"/>
+    <Target Name="Plugin:Make">
+        <MSBuild Projects="Plugin.dproj" Targets="Make"/>
     </Target>
     <Target Name="smType">
         <MSBuild Projects="smType.dproj"/>
@@ -120,13 +120,13 @@
         <MSBuild Projects="SimpleMail.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="smPlugin;smType;smAbout;smTips;smBase;smImport;smSettings;smMain;SimpleMail"/>
+        <CallTarget Targets="Plugin;smType;smAbout;smTips;smBase;smImport;smSettings;smMain;SimpleMail"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="smPlugin:Clean;smType:Clean;smAbout:Clean;smTips:Clean;smBase:Clean;smImport:Clean;smSettings:Clean;smMain:Clean;SimpleMail:Clean"/>
+        <CallTarget Targets="Plugin:Clean;smType:Clean;smAbout:Clean;smTips:Clean;smBase:Clean;smImport:Clean;smSettings:Clean;smMain:Clean;SimpleMail:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="smPlugin:Make;smType:Make;smAbout:Make;smTips:Make;smBase:Make;smImport:Make;smSettings:Make;smMain:Make;SimpleMail:Make"/>
+        <CallTarget Targets="Plugin:Make;smType:Make;smAbout:Make;smTips:Make;smBase:Make;smImport:Make;smSettings:Make;smMain:Make;SimpleMail:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

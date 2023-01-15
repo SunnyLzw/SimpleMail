@@ -2,8 +2,8 @@ object FormMain: TFormMain
   Left = 0
   Top = 0
   Caption = #26410#30331#24405
-  ClientHeight = 537
-  ClientWidth = 880
+  ClientHeight = 535
+  ClientWidth = 872
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -18,23 +18,21 @@ object FormMain: TFormMain
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    880
-    537)
+    872
+    535)
   TextHeight = 14
   object PanelMain: TPanel
     Left = 8
     Top = 8
-    Width = 860
-    Height = 508
+    Width = 856
+    Height = 506
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 856
-    ExplicitHeight = 507
     object Splitter1: TSplitter
       Left = 0
       Top = 220
-      Width = 860
+      Width = 856
       Height = 3
       Cursor = crVSplit
       Align = alTop
@@ -46,14 +44,14 @@ object FormMain: TFormMain
     object PanelPrint: TPanel
       Left = 0
       Top = 0
-      Width = 860
+      Width = 856
       Height = 220
       Align = alTop
       BevelKind = bkFlat
       BevelOuter = bvNone
       ParentBackground = False
       TabOrder = 0
-      ExplicitWidth = 856
+      ExplicitWidth = 848
       object Splitter2: TSplitter
         Left = 160
         Top = 0
@@ -89,16 +87,16 @@ object FormMain: TFormMain
       object PanelLog: TPanel
         Left = 163
         Top = 0
-        Width = 693
+        Width = 689
         Height = 216
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitWidth = 689
+        ExplicitWidth = 681
         object ListView1: TListView
           Left = 0
           Top = 0
-          Width = 693
+          Width = 689
           Height = 216
           Align = alClient
           Columns = <
@@ -130,26 +128,25 @@ object FormMain: TFormMain
           OnCustomDrawItem = ListView1CustomDrawItem
           OnData = ListView1Data
           OnDeletion = ListView1Deletion
-          ExplicitLeft = 3
-          ExplicitTop = -1
+          ExplicitWidth = 685
         end
       end
     end
     object PanelMessage: TPanel
       Left = 0
       Top = 223
-      Width = 860
-      Height = 285
+      Width = 856
+      Height = 283
       Align = alClient
       BevelKind = bkFlat
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitWidth = 856
-      ExplicitHeight = 284
+      ExplicitWidth = 848
+      ExplicitHeight = 282
       object Splitter3: TSplitter
-        Left = 513
+        Left = 509
         Top = 0
-        Height = 281
+        Height = 279
         Align = alRight
         AutoSnap = False
         MinSize = 300
@@ -161,16 +158,16 @@ object FormMain: TFormMain
       object PanelBody: TPanel
         Left = 0
         Top = 0
-        Width = 513
-        Height = 281
+        Width = 509
+        Height = 279
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 509
-        ExplicitHeight = 280
+        ExplicitWidth = 501
+        ExplicitHeight = 278
         DesignSize = (
-          513
-          281)
+          509
+          279)
         object Label1: TLabel
           Left = 0
           Top = 7
@@ -188,29 +185,26 @@ object FormMain: TFormMain
         object EditSubject: TEdit
           Left = 38
           Top = 4
-          Width = 342
+          Width = 348
           Height = 22
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
           OnChange = ModifyMailData
-          ExplicitWidth = 338
         end
         object MemoBody: TMemo
           Left = 38
           Top = 32
-          Width = 445
-          Height = 233
+          Width = 451
+          Height = 228
           Anchors = [akLeft, akTop, akRight, akBottom]
           ScrollBars = ssBoth
           TabOrder = 1
           WantTabs = True
           WordWrap = False
           OnChange = ModifyMailData
-          ExplicitWidth = 441
-          ExplicitHeight = 232
         end
         object CheckBoxIsHtml: TCheckBox
-          Left = 386
+          Left = 392
           Top = 7
           Width = 97
           Height = 17
@@ -218,27 +212,26 @@ object FormMain: TFormMain
           Caption = #26159#21542'Html'#26684#24335
           TabOrder = 2
           OnClick = ModifyMailData
-          ExplicitLeft = 382
         end
       end
       object PanelAttachment: TPanel
-        Left = 516
+        Left = 512
         Top = 0
         Width = 340
-        Height = 281
+        Height = 279
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 512
-        ExplicitHeight = 280
+        ExplicitLeft = 504
+        ExplicitHeight = 278
         DesignSize = (
           340
-          281)
+          279)
         object ListView2: TListView
           Left = 0
           Top = 0
           Width = 340
-          Height = 232
+          Height = 230
           Align = alTop
           Anchors = [akLeft, akTop, akRight, akBottom]
           Columns = <
@@ -262,41 +255,41 @@ object FormMain: TFormMain
         end
         object ButtonImportAttachment: TButton
           Left = -2
-          Top = 246
+          Top = 244
           Width = 75
           Height = 25
           Action = ActionImportAttachment
           Anchors = [akLeft, akBottom]
           TabOrder = 2
-          ExplicitTop = 245
+          ExplicitTop = 243
         end
         object ButtonImport: TButton
           Left = 182
-          Top = 246
+          Top = 244
           Width = 75
           Height = 25
           Action = ActionImport
           Anchors = [akRight, akBottom]
           TabOrder = 1
-          ExplicitTop = 245
+          ExplicitTop = 243
         end
         object ButtonSendMail: TButton
           Left = 263
-          Top = 246
+          Top = 244
           Width = 75
           Height = 25
           Action = ActionSendStart
           Anchors = [akRight, akBottom]
           TabOrder = 0
-          ExplicitTop = 245
+          ExplicitTop = 243
         end
       end
     end
   end
   object StatusBarState: TStatusBar
     Left = 0
-    Top = 518
-    Width = 880
+    Top = 516
+    Width = 872
     Height = 19
     Panels = <
       item
@@ -317,8 +310,8 @@ object FormMain: TFormMain
         Width = 50
       end>
     OnDrawPanel = StatusBarStateDrawPanel
-    ExplicitTop = 517
-    ExplicitWidth = 876
+    ExplicitTop = 515
+    ExplicitWidth = 868
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup

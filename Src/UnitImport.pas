@@ -3,7 +3,7 @@ unit UnitImport;
 interface
 
 uses
-  UnitType, UnitPackage, Winapi.Windows, Winapi.Messages, System.SysUtils,
+  UnitType, UnitTools, Winapi.Windows, Winapi.Messages, System.SysUtils,
   System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
   Vcl.Dialogs, Vcl.StdCtrls;
 
@@ -127,8 +127,8 @@ procedure TFormImport.FormCreate(Sender: TObject);
 begin
   FOriginalActive := Application.OnActivate;
   Application.OnActivate := NewActivate;
-  FPackageBase := UnitPackage.TBase.Create;
-  FPackageTips := UnitPackage.TTips.Create;
+  FPackageBase := UnitTools.TBase.Create;
+  FPackageTips := UnitTools.TTips.Create;
   FPackageTips.Tips.SetAutoComplete(AutoComplete);
   FPackageTips.Tips.SetPostfixs(FPackageBase.Base.GetPostfixs);
   FCustomFormTips := TCustomForm(FPackageTips.Form.GetObject);

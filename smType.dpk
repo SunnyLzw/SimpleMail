@@ -28,13 +28,13 @@ package smType;
 {$IMPLICITBUILD ON}
 
 requires
+  Plugin,
   rtl,
   vcl;
 
 contains
   UnitType in 'Src\UnitType.pas',
-  UnitTools in 'Src\UnitTools.pas',
-  UnitPackage in 'Src\UnitPackage.pas';
+  UnitTools in 'Src\UnitTools.pas';
 
 end.
 

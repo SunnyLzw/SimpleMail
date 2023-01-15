@@ -10,7 +10,7 @@ program SimpleMail;
 
 uses
   UnitType,
-  UnitPackage,
+  UnitTools,
 {$IFDEF DEBUG}
   UnitBase,
   UnitMain,
@@ -28,12 +28,12 @@ var
 begin
   GMutex := CreateMutex(nil, True, '{04262155-48E5-4D75-94C0-9EC0BA6B5E2D}');
   if GetLastError <> ERROR_ALREADY_EXISTS then
-    with UnitPackage.TBase.Create do
+    with UnitTools.TBase.Create do
     try
       Application.Initialize;
       Application.Title := 'SimpleMail';
       Application.MainFormOnTaskbar := True;
-      with UnitPackage.TForm.Create('Main') do
+      with UnitTools.TForm.Create('Main') do
       try
         Application.Run;
       finally

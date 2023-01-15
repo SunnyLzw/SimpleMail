@@ -3,7 +3,7 @@ unit UnitSettings;
 interface
 
 uses
-  UnitType, UnitTools, UnitPackage, Winapi.Windows, Winapi.Messages,
+  UnitType, UnitTools, Winapi.Windows, Winapi.Messages,
   System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls,
   Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Samples.Spin,
   Vcl.ExtCtrls, Vcl.Buttons;
@@ -185,7 +185,7 @@ end;
 
 procedure TFormSettings.FormCreate(Sender: TObject);
 begin
-  FPackageBase := UnitPackage.TBase.Create;
+  FPackageBase := UnitTools.TBase.Create;
   ComboBox1.Items.AddStrings(['Flat', 'Standard', 'UltraFlat', 'Office11']);
 
   CreateTree;

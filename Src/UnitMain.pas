@@ -3,7 +3,7 @@ unit UnitMain;
 interface
 
 uses
-  UnitType, UnitPackage, UnitPluginManager, Winapi.Windows, System.IOUtils,
+  UnitType, UnitTools, UnitPluginManager, Winapi.Windows, System.IOUtils,
   Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls,
   Vcl.Forms, Vcl.Menus, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ActnList,
   Vcl.Dialogs, Vcl.ExtDlgs, Vcl.ImgList, System.ImageList, System.Actions;
@@ -318,7 +318,7 @@ end;
 
 procedure TFormMain.ActionImportExecute(Sender: TObject);
 begin
-  with UnitPackage.TImport.Create do
+  with UnitTools.TImport.Create do
   try
     AddMailAddresss(TStrings(Dialog.Show));
   finally
@@ -334,7 +334,7 @@ begin
     try
       SetCurrentDir(ExtractFilePath(Application.ExeName));
       LoadFromFile(OpenTextFileDialog1.FileName, OpenTextFileDialog1.Encodings.Objects[OpenTextFileDialog1.EncodingIndex] as TEncoding);
-      with UnitPackage.TImport.Create do
+      with UnitTools.TImport.Create do
       try
         AddMailAddresss(Import.AutoPostfixs(Text));
       finally
@@ -527,8 +527,7 @@ var
   item: PPluginObject;
   mi, gmi, pmi, nmi: TMenuItem;
 begin
-  FPackageBase := UnitPackage.TBase.Create;
-
+  FPackageBase := UnitTools.TBase.Create;
   Caption := FPackageBase.Base.GetSmtpData.Username;
   LogList := TSendLogList.Create;
   AttachmentList := TAttachmentDataList.Create;
@@ -655,6 +654,7 @@ begin
   end;
 
   UpdateAddress;
+  OpenTextFileDialog1.EncodingIndex := 2;
   IsModifed := True;
 end;
 
