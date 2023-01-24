@@ -72,6 +72,7 @@
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <DCC_UsePackage>rtl;vcl;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_UnitSearchPath>\Dcp;.\Src;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <UsePackages>true</UsePackages>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
@@ -88,14 +89,14 @@
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Sunny;FileDescription=一个简单的邮件发送器;FileVersion=1.1.13.297;InternalName=$(MSBuildProjectName);LegalCopyright=Sunny;LegalTrademarks=Sunny;OriginalFilename=$(MSBuildProjectName).exe;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=一个简单的邮件发送器;ProgramID=Sunny.$(MSBuildProjectName)</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Sunny;FileDescription=一个简单的邮件发送器;FileVersion=1.1.13.296;InternalName=$(MSBuildProjectName);LegalCopyright=Sunny;LegalTrademarks=Sunny;OriginalFilename=$(MSBuildProjectName).exe;ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=一个简单的邮件发送器;ProgramID=Sunny.$(MSBuildProjectName)</VerInfo_Keys>
         <Icon_MainIcon>Bin\Res\Icon.ico</Icon_MainIcon>
         <UWP_DelphiLogo44>Bin\Res\Icon.ico</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>Bin\Res\Icon.ico</UWP_DelphiLogo150>
         <DCC_UsePackage>smType;smPlugin;$(DCC_UsePackage)</DCC_UsePackage>
         <VerInfo_MinorVer>1</VerInfo_MinorVer>
         <VerInfo_Release>13</VerInfo_Release>
-        <VerInfo_Build>297</VerInfo_Build>
+        <VerInfo_Build>296</VerInfo_Build>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
