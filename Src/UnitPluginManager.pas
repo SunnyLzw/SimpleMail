@@ -3,27 +3,29 @@ unit UnitPluginManager;
 interface
 
 uses
-  Winapi.Windows, System.SysUtils, System.Generics.Collections, System.IOUtils,
-  System.Rtti, UnitPluginFrame;
+  System.SysUtils, System.Generics.Collections, System.IOUtils, System.Rtti,
+  UnitPluginFrame;
 
 type
   PPluginObject = ^TPluginObject;
 
   TPluginObject = record
     ModuleHandle: HMODULE;
-    PluginInterface: IPlugin;
+    Plugin: IPlugin;
+    PluginEvent: IPluginEvent;
+    PluginMenuEvent: IPluginMenuEvent;
     PluginData: TPluginData;
   end;
 
   TPluginManager = class(TObject)
   protected
-    FPlugins: TList<PPluginObject>;
+    FPluginObjectList: TList<PPluginObject>;
   public
     constructor Create(APluginPath: string);
     destructor Destroy; override;
     procedure EnumPlugin(APluginPath: string);
   public
-    property Plugins: TList<PPluginObject> read FPlugins;
+    property PluginObjectList: TList<PPluginObject> read FPluginObjectList;
   end;
 
 implementation
@@ -36,35 +38,44 @@ begin
 end;
 
 destructor TPluginManager.Destroy;
+var
+  LPluginObject: PPluginObject;
 begin
-  for var i in FPlugins do
+  for LPluginObject in FPluginObjectList do
   begin
-    i.PluginInterface.OnUnLoad;
-    i.PluginInterface := nil;
-    //UnloadPackage(i.ModuleHandle);
-    Dispose(i);
+    LPluginObject.PluginEvent.OnUnLoad;
+    LPluginObject.Plugin := nil;
+    LPluginObject.PluginEvent := nil;
+    LPluginObject.PluginMenuEvent := nil;
+    //UnloadPackage(LPluginObject.ModuleHandle);
+    Dispose(LPluginObject);
   end;
 
-  FPlugins.Free;
+  FPluginObjectList.Free;
   inherited;
 end;
 
 procedure TPluginManager.EnumPlugin(APluginPath: string);
 var
+  LFileNames: TArray<string>;
+  LFileName: string;
   LPackage: TRttiPackage;
   LType: TRttiType;
   LPluginObject: PPluginObject;
   LHandle: THandle;
-  LPluginInterface: IPlugin;
+  LObject: TInterfacedObject;
+  LPlugin: IPlugin;
+  LPluginEvent: IPluginEvent;
+  LPluginMenuEvent: IPluginMenuEvent;
 begin
-  FPlugins := TList<PPluginObject>.Create;
+  FPluginObjectList := TList<PPluginObject>.Create;
   if not DirectoryExists(APluginPath) then
     Exit;
 
-  var fs := TDirectory.GetFiles(APluginPath, '*.bpl');
-  for var i in fs do
+  LFileNames := TDirectory.GetFiles(APluginPath, '*.bpl');
+  for LFileName in LFileNames do
   begin
-    LHandle := LoadPackage(i);
+    LHandle := LoadPackage(LFileName);
     if LHandle <= 0 then
       Continue;
 
@@ -72,26 +83,43 @@ begin
     try
       for LPackage in GetPackages do
       begin
-        if ExtractFileName(LPackage.Name) <> ExtractFileName(i) then
+        if ExtractFileName(LPackage.Name) <> ExtractFileName(LFileName) then
           Continue;
 
         for LType in LPackage.GetTypes do
         begin
-          if not (LType.BaseType = GetType(TPlugin)) then
+          if not Assigned(LType.BaseType) then
             Continue;
 
-          if not Supports((LType as TRttiInstanceType).MetaclassType.Create, StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), LPluginInterface) then
+          {$IFDEF DEBUG}
+          if LType.BaseType.Name <> GetType(TPlugin).Name then
+            Continue;
+          {$ELSE}
+          if LType.BaseType <> GetType(TPlugin) then
+            Continue;
+          {$ENDIF}
+
+
+          LObject := TInterfacedObject((LType as TRttiInstanceType).MetaclassType.Create);
+          if not Assigned(LObject) then
           begin
             UnloadPackage(LHandle);
             Continue;
           end;
+          Supports(LObject, StringToGUID('{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}'), LPlugin);
+          Supports(LObject, StringToGUID('{8AEB9497-6C87-426B-A253-A518E45F9395}'), LPluginEvent);
+          Supports(LObject, StringToGUID('{3CC5ADD0-4192-4256-92E2-590754B945E4}'), LPluginMenuEvent);
           New(LPluginObject);
-          LPluginInterface.OnLoad;
+          LPluginEvent.OnLoad;
           LPluginObject.ModuleHandle := LHandle;
-          LPluginObject.PluginData := LPluginInterface.GetPluginData;
-          LPluginObject.PluginInterface := LPluginInterface;
-          FPlugins.Add(LPluginObject);
-          LPluginInterface := nil;
+          LPluginObject.PluginData := LPlugin.GetPluginData;
+          LPluginObject.Plugin := LPlugin;
+          LPluginObject.PluginEvent := LPluginEvent;
+          LPluginObject.PluginMenuEvent := LPluginMenuEvent;
+          FPluginObjectList.Add(LPluginObject);
+          LPlugin := nil;
+          LPluginEvent := nil;
+          LPluginMenuEvent := nil;
         end;
       end;
     finally

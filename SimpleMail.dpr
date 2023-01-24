@@ -1,24 +1,19 @@
 program SimpleMail;
-{$IFDEF DEBUG}
-  {$STRONGLINKTYPES ON}
-{$ELSE}
-  {$IF CompilerVersion >= 21.0}
-  {$WEAKLINKRTTI ON}
-  {$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
-  {$ENDIF}
-{$ENDIF}
+{$STRONGLINKTYPES ON}
+{$WEAKLINKRTTI ON}
+{$RTTI EXPLICIT METHODS([]) PROPERTIES([]) FIELDS([])}
 
 uses
-  UnitType,
-  UnitTools,
-{$IFDEF DEBUG}
-  UnitBase,
-  UnitMain,
-{$ENDIF}
   Vcl.Forms,
   Winapi.Windows,
   System.SysUtils,
-  System.Classes;
+  System.Classes,
+  {$IFDEF DEBUG}
+  UnitMain,
+  {$ENDIF }
+  UnitType,
+  UnitPackage,
+  UnitBase in 'Src\UnitBase.pas' {DataModuleBase: TDataModule};
 
 {$R *.res}
 
@@ -28,12 +23,13 @@ var
 begin
   GMutex := CreateMutex(nil, True, '{04262155-48E5-4D75-94C0-9EC0BA6B5E2D}');
   if GetLastError <> ERROR_ALREADY_EXISTS then
-    with UnitTools.TBase.Create do
+  begin
+    Application.Initialize;
+    Application.Title := 'SimpleMail';
+    Application.MainFormOnTaskbar := True;
+    with UnitPackage.TBase.Create do
     try
-      Application.Initialize;
-      Application.Title := 'SimpleMail';
-      Application.MainFormOnTaskbar := True;
-      with UnitTools.TForm.Create('Main') do
+      with UnitPackage.TForm.Create('Main') do
       try
         Application.Run;
       finally
@@ -42,6 +38,7 @@ begin
     finally
       Free;
     end;
+  end;
   ReleaseMutex(GMutex);
 end.
 

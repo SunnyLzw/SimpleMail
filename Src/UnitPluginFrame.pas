@@ -3,16 +3,21 @@ unit UnitPluginFrame;
 interface
 
 uses
-  Vcl.Menus, System.Classes;
+  Vcl.Forms, Vcl.Menus, System.Classes;
 
 type
+  TInheriteState = (IsDefault, IsIndex, IsName);
+
   {$Align 4}
   TPluginData = record
+    HasWindow: Boolean;
     CanChecked: Boolean;
+    HasMultiLevel: Boolean;
+    InheriteState: TInheriteState;
     ParentIndex: Integer;
     ParentName: string;
-    GroupName: string;
     Name: string;
+    Names: TStrings;
     Hint: string;
   end;
 
@@ -20,33 +25,47 @@ type
     ['{353D65E4-FAC1-4EB0-9CAF-E54911BB83CA}']
     function GetPluginData: TPluginData;
     procedure SetPluginData(APluginData: TPluginData);
+    function GetMainForm: TForm;
+    procedure SetMainForm(const AMainForm: TForm);
     function GetMenuItem: TMenuItem;
-    procedure SetMenuItem(AMenuItem: TMenuItem);
+    procedure SetMenuItem(const AMenuItem: TMenuItem);
     function GetChecked: Boolean;
     procedure SetChecked(State: Boolean);
+  end;
+
+  IPluginEvent = interface
+    ['{8AEB9497-6C87-426B-A253-A518E45F9395}']
     procedure OnLoad;
     procedure OnUnLoad;
     procedure Execute;
+  end;
+
+  IPluginMenuEvent = interface
+    ['{3CC5ADD0-4192-4256-92E2-590754B945E4}']
     procedure OnClick;
     procedure OnChecked;
   end;
 
-  TPlugin = class(TInterfacedObject, IPlugin)
+  TPlugin = class(TInterfacedObject, IPlugin, IPluginEvent, IPluginMenuEvent)
   protected
     FPluginData: TPluginData;
+    FMainForm: TForm;
     FMenuItem: TMenuItem;
-  public
-    function GetPluginData: TPluginData; virtual;
-    procedure SetPluginData(APluginData: TPluginData); virtual;
-    function GetMenuItem: TMenuItem; virtual;
-    procedure SetMenuItem(AMenuItem: TMenuItem); virtual;
-    function GetChecked: Boolean; virtual;
-    procedure SetChecked(State: Boolean); virtual;
+  protected
     procedure OnLoad; virtual;
     procedure OnUnLoad; virtual;
     procedure Execute; virtual;
     procedure OnClick; virtual;
     procedure OnChecked; virtual;
+  public
+    function GetPluginData: TPluginData; virtual;
+    procedure SetPluginData(APluginData: TPluginData); virtual;
+    function GetMainForm: TForm; virtual;
+    procedure SetMainForm(const AMainForm: TForm); virtual;
+    function GetMenuItem: TMenuItem; virtual;
+    procedure SetMenuItem(const AMenuItem: TMenuItem); virtual;
+    function GetChecked: Boolean; virtual;
+    procedure SetChecked(State: Boolean); virtual;
   public
     property PluginData: TPluginData read GetPluginData write SetPluginData;
   end;
@@ -67,6 +86,11 @@ begin
     Exit;
 
   Result := FMenuItem.Checked;
+end;
+
+function TPlugin.GetMainForm: TForm;
+begin
+  Result := FMainForm;
 end;
 
 function TPlugin.GetMenuItem: TMenuItem;
@@ -114,7 +138,12 @@ begin
   FMenuItem.Checked := State;
 end;
 
-procedure TPlugin.SetMenuItem(AMenuItem: TMenuItem);
+procedure TPlugin.SetMainForm(const AMainForm: TForm);
+begin
+  FMainForm := AMainForm;
+end;
+
+procedure TPlugin.SetMenuItem(const AMenuItem: TMenuItem);
 begin
   FMenuItem := AMenuItem;
 end;

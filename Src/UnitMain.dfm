@@ -12,6 +12,7 @@ object FormMain: TFormMain
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu
+  OldCreateOrder = True
   Position = poDesktopCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -20,6 +21,7 @@ object FormMain: TFormMain
   DesignSize = (
     872
     535)
+  PixelsPerInch = 96
   TextHeight = 14
   object PanelMain: TPanel
     Left = 8
@@ -51,7 +53,6 @@ object FormMain: TFormMain
       BevelOuter = bvNone
       ParentBackground = False
       TabOrder = 0
-      ExplicitWidth = 848
       object Splitter2: TSplitter
         Left = 160
         Top = 0
@@ -92,7 +93,6 @@ object FormMain: TFormMain
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitWidth = 681
         object ListView1: TListView
           Left = 0
           Top = 0
@@ -128,7 +128,6 @@ object FormMain: TFormMain
           OnCustomDrawItem = ListView1CustomDrawItem
           OnData = ListView1Data
           OnDeletion = ListView1Deletion
-          ExplicitWidth = 685
         end
       end
     end
@@ -141,8 +140,6 @@ object FormMain: TFormMain
       BevelKind = bkFlat
       BevelOuter = bvNone
       TabOrder = 1
-      ExplicitWidth = 848
-      ExplicitHeight = 282
       object Splitter3: TSplitter
         Left = 509
         Top = 0
@@ -163,8 +160,6 @@ object FormMain: TFormMain
         Align = alClient
         BevelOuter = bvNone
         TabOrder = 0
-        ExplicitWidth = 501
-        ExplicitHeight = 278
         DesignSize = (
           509
           279)
@@ -222,8 +217,6 @@ object FormMain: TFormMain
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitLeft = 504
-        ExplicitHeight = 278
         DesignSize = (
           340
           279)
@@ -261,7 +254,6 @@ object FormMain: TFormMain
           Action = ActionImportAttachment
           Anchors = [akLeft, akBottom]
           TabOrder = 2
-          ExplicitTop = 243
         end
         object ButtonImport: TButton
           Left = 182
@@ -271,7 +263,6 @@ object FormMain: TFormMain
           Action = ActionImport
           Anchors = [akRight, akBottom]
           TabOrder = 1
-          ExplicitTop = 243
         end
         object ButtonSendMail: TButton
           Left = 263
@@ -281,7 +272,6 @@ object FormMain: TFormMain
           Action = ActionSendStart
           Anchors = [akRight, akBottom]
           TabOrder = 0
-          ExplicitTop = 243
         end
       end
     end
@@ -310,8 +300,6 @@ object FormMain: TFormMain
         Width = 50
       end>
     OnDrawPanel = StatusBarStateDrawPanel
-    ExplicitTop = 515
-    ExplicitWidth = 868
   end
   object PopupMenu1: TPopupMenu
     OnPopup = PopupMenu1Popup

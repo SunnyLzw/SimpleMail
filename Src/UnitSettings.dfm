@@ -12,9 +12,11 @@ object FormSettings: TFormSettings
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OldCreateOrder = True
   Position = poMainFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  PixelsPerInch = 96
   TextHeight = 15
   object PanelMain: TPanel
     Left = 8
@@ -43,7 +45,6 @@ object FormSettings: TFormSettings
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitHeight = 253
       object PageControl1: TPageControl
         Left = 0
         Top = 0
@@ -52,7 +53,6 @@ object FormSettings: TFormSettings
         ActivePage = TabSheet1
         Align = alClient
         TabOrder = 0
-        ExplicitHeight = 253
         object TabSheet1: TTabSheet
           Caption = #26381#21153#22120
           object PageControl2: TPageControl
@@ -65,7 +65,6 @@ object FormSettings: TFormSettings
             MultiLine = True
             ScrollOpposite = True
             TabOrder = 0
-            ExplicitHeight = 223
             object TabSheet5: TTabSheet
               Caption = 'Smtp'
               object Label3: TLabel
@@ -97,7 +96,7 @@ object FormSettings: TFormSettings
                 Caption = #26174#31034#21517#65306
               end
               object ButtonLoad: TSpeedButton
-                Left = 151
+                Left = 149
                 Top = 160
                 Width = 32
                 Height = 32
@@ -332,7 +331,6 @@ object FormSettings: TFormSettings
       Height = 237
       Align = alLeft
       TabOrder = 1
-      ExplicitHeight = 253
       object TreeView1: TTreeView
         Left = 1
         Top = 1

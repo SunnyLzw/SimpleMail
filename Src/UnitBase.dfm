@@ -1,4 +1,5 @@
 object DataModuleBase: TDataModuleBase
+  OldCreateOrder = True
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
   Height = 182

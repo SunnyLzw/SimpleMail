@@ -12,7 +12,7 @@ uses
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.SQLiteDef,
   FireDAC.Stan.ExprFuncs, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
-  FireDAC.Phys.SQLiteWrapper.Stat, FireDAC.VCLUI.Wait, IdComponent, IdIOHandler;
+  FireDAC.VCLUI.Wait, IdComponent, IdIOHandler;
 
 type
   TSmtp = class;
@@ -30,12 +30,12 @@ type
   private
     { Private declarations }
     FSmtp: ISmtp;
-    TableName: string;
-    IWait: IFDGUIxWaitCursor;
-    SettingsData: TSettingsData;
-    SmtpData: TSmtpData;
-    MailData: TMailData;
-    Postfixs: TStrings;
+    FTableName: string;
+    FWaitCursor: IFDGUIxWaitCursor;
+    FSettingsData: TSettingsData;
+    FSmtpData: TSmtpData;
+    FMailData: TMailData;
+    FPostfixs: TStrings;
   public
     { Public declarations }
     function QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer;
@@ -87,6 +87,10 @@ type
 const
   DefaultPostfixs: TArray<string> = ['qq.com', '126.com', '163.com', 'sina.com', 'gmail.com', 'foxmail.com', 'hotmail.com', 'outlook.com'];
 
+var
+  GDataModuleBase: TDataModuleBase;
+  GReferenceCount: Integer;
+
 implementation
 
 uses
@@ -97,10 +101,6 @@ uses
 
 {$R *.dfm}
 
-var
-  GDataModuleBase: TDataModuleBase;
-  GReferenceCount: Integer;
-
 procedure TDataModuleBase.CreateDefaultTable;
 begin
   if TableIsExist then
@@ -108,7 +108,7 @@ begin
 
   with FDQuery1 do
   begin
-    SQL.Text := 'Create Table If Not Exists ' + TableName + ' (Id integer Primary Key Autoincrement Not Null,DisplayName ntext,Address ntext,Success ntext,ErrorCode int,ErrorText ntext,Time ntext)';
+    SQL.Text := 'Create Table If Not Exists ' + FTableName + ' (Id integer Primary Key Autoincrement Not Null,DisplayName ntext,Address ntext,Success ntext,ErrorCode int,ErrorText ntext,Time ntext)';
     ExecSQL;
   end;
 end;
@@ -125,49 +125,49 @@ begin
   if not TDirectory.Exists('.\Res') then
     TDirectory.CreateDirectory('.\Res');
 
-  Postfixs := TStringList.Create;
-  if not TFile.Exists('.\Config\Postfixs.ini') then
+  FPostfixs := TStringList.Create;
+  if not TFile.Exists('.\Config\FPostfixs.ini') then
   begin
-    Postfixs.AddStrings(DefaultPostfixs);
-    Postfixs.SaveToFile('.\Config\Postfixs.ini', TEncoding.Unicode);
+    FPostfixs.AddStrings(DefaultPostfixs);
+    FPostfixs.SaveToFile('.\Config\FPostfixs.ini', TEncoding.Unicode);
   end
   else
-    Postfixs.LoadFromFile('.\Config\Postfixs.ini', TEncoding.Unicode);
+    FPostfixs.LoadFromFile('.\Config\FPostfixs.ini', TEncoding.Unicode);
 
   UpdateSettingsData;
   UpdateSmtpData;
   UpdateMailData;
   if not TFile.Exists('.\Config\Settings.ini') then
-    SetSettingsData(SettingsData);
+    SetSettingsData(FSettingsData);
 
   if not TFile.Exists('.\Config\Smtp.ini') then
-    SetSmtpData(SmtpData);
+    SetSmtpData(FSmtpData);
 
   if not TFile.Exists('.\Config\Mail.ini') then
-    SetMailData(MailData);
+    SetMailData(FMailData);
 
   FDConnection1.Open;
-  FDCreateInterface(IFDGUIxWaitCursor, IWait);
+  FDCreateInterface(IFDGUIxWaitCursor, FWaitCursor);
 end;
 
 procedure TDataModuleBase.DataModuleDestroy(Sender: TObject);
 begin
   FSmtp := nil;
   IdSMTP1.Disconnect;
-  IWait := nil;
+  FWaitCursor := nil;
 end;
 
 function TDataModuleBase.EnumAll(var ASendDataList: TSendDataList): Integer;
 var
-  fs: TFormatSettings;
-  sd: TSendData;
+  LFormatSettings: TFormatSettings;
+  LSendData: TSendData;
 begin
-  fs.LongDateFormat := 'yyyy-mm-dd';
-  fs.ShortDateFormat := 'yyyy-mm-dd';
-  fs.DateSeparator := '-';
-  fs.LongTimeFormat := 'hh:nn:ss';
-  fs.ShortTimeFormat := 'hh:nn:ss';
-  fs.TimeSeparator := ':';
+  LFormatSettings.LongDateFormat := 'yyyy-mm-dd';
+  LFormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+  LFormatSettings.DateSeparator := '-';
+  LFormatSettings.LongTimeFormat := 'hh:nn:LStringStream';
+  LFormatSettings.ShortTimeFormat := 'hh:nn:LStringStream';
+  LFormatSettings.TimeSeparator := ':';
 
   Result := 0;
   if not TableIsExist then
@@ -175,12 +175,12 @@ begin
 
   with FDQuery1 do
   begin
-    Open('Select * From ' + TableName);
+    Open('Select * From ' + FTableName);
     ASendDataList := TSendDataList.Create;
     First;
     Result := 0;
     while not Eof do
-      with sd do
+      with LSendData do
       begin
         State := ssError;
         if FieldByName('Success').AsWideString.ToBoolean then
@@ -189,8 +189,8 @@ begin
         Address := FieldByName('Address').AsWideString;
         ErrorCode := FieldByName('ErrorCode').AsInteger;
         ErrorText := FieldByName('ErrorText').AsWideString;
-        Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
-        ASendDataList.Add(sd);
+        Time := StrToDateTime(FieldByName('Time').AsWideString, LFormatSettings);
+        ASendDataList.Add(LSendData);
         Inc(Result);
         Next;
       end;
@@ -206,7 +206,7 @@ begin
 
   with FDQuery1 do
   begin
-    Open('Select * From ' + TableName + ' Where Success like ''True''');
+    Open('Select * From ' + FTableName + ' Where Success like ''True''');
     First;
     while not Eof do
     begin
@@ -219,15 +219,15 @@ end;
 
 function TDataModuleBase.EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
 var
-  fs: TFormatSettings;
-  sd: TSendData;
+  LFormatSettings: TFormatSettings;
+  LSendData: TSendData;
 begin
-  fs.LongDateFormat := 'yyyy-mm-dd';
-  fs.ShortDateFormat := 'yyyy-mm-dd';
-  fs.DateSeparator := '-';
-  fs.LongTimeFormat := 'hh:nn:ss';
-  fs.ShortTimeFormat := 'hh:nn:ss';
-  fs.TimeSeparator := ':';
+  LFormatSettings.LongDateFormat := 'yyyy-mm-dd';
+  LFormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+  LFormatSettings.DateSeparator := '-';
+  LFormatSettings.LongTimeFormat := 'hh:nn:LStringStream';
+  LFormatSettings.ShortTimeFormat := 'hh:nn:LStringStream';
+  LFormatSettings.TimeSeparator := ':';
 
   Result := 0;
   if not TableIsExist then
@@ -238,12 +238,12 @@ begin
 
   with FDQuery1 do
   begin
-    Open('Select * From ' + TableName + ' Where Time like ''' + ADate + '%''');
+    Open('Select * From ' + FTableName + ' Where Time like ''' + ADate + '%''');
     ASendDataList := TSendDataList.Create;
     First;
     Result := 0;
     while not Eof do
-      with sd do
+      with LSendData do
       begin
         State := ssError;
         if FieldByName('Success').AsWideString.ToBoolean then
@@ -252,8 +252,8 @@ begin
         Address := FieldByName('Address').AsWideString;
         ErrorCode := FieldByName('ErrorCode').AsInteger;
         ErrorText := FieldByName('ErrorText').AsWideString;
-        Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
-        ASendDataList.Add(sd);
+        Time := StrToDateTime(FieldByName('Time').AsWideString, LFormatSettings);
+        ASendDataList.Add(LSendData);
         Inc(Result);
         Next;
       end;
@@ -263,35 +263,35 @@ end;
 
 function TDataModuleBase.GetMailData: TMailData;
 begin
-  Result := MailData;
+  Result := FMailData;
 end;
 
 function TDataModuleBase.GetPostfixs: TStrings;
 begin
-  Result := Postfixs;
+  Result := FPostfixs;
 end;
 
 function TDataModuleBase.GetSettingsData: TSettingsData;
 begin
-  Result := SettingsData;
+  Result := FSettingsData;
 end;
 
 function TDataModuleBase.GetSmtpData: TSmtpData;
 begin
-  Result := SmtpData;
+  Result := FSmtpData;
 end;
 
 function TDataModuleBase.QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer;
 var
-  fs: TFormatSettings;
-  sd: TSendData;
+  LFormatSettings: TFormatSettings;
+  LSendData: TSendData;
 begin
-  fs.LongDateFormat := 'yyyy-mm-dd';
-  fs.ShortDateFormat := 'yyyy-mm-dd';
-  fs.DateSeparator := '-';
-  fs.LongTimeFormat := 'hh:nn:ss';
-  fs.ShortTimeFormat := 'hh:nn:ss';
-  fs.TimeSeparator := ':';
+  LFormatSettings.LongDateFormat := 'yyyy-mm-dd';
+  LFormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+  LFormatSettings.DateSeparator := '-';
+  LFormatSettings.LongTimeFormat := 'hh:nn:LStringStream';
+  LFormatSettings.ShortTimeFormat := 'hh:nn:LStringStream';
+  LFormatSettings.TimeSeparator := ':';
 
   Result := 0;
   if not TableIsExist then
@@ -299,12 +299,12 @@ begin
 
   with FDQuery1 do
   begin
-    Open('Select * From ' + TableName + ' Where Address like ''%' + AAddress.Replace('@', '_') + '%''');
+    Open('Select * From ' + FTableName + ' Where Address like ''%' + AAddress.Replace('@', '_') + '%''');
     ASendDataList := TSendDataList.Create;
     First;
     Result := 0;
     while not Eof do
-      with sd do
+      with LSendData do
       begin
         State := ssError;
         if FieldByName('Success').AsWideString.ToBoolean then
@@ -313,8 +313,8 @@ begin
         Address := FieldByName('Address').AsWideString;
         ErrorCode := FieldByName('ErrorCode').AsInteger;
         ErrorText := FieldByName('ErrorText').AsWideString;
-        Time := StrToDateTime(FieldByName('Time').AsWideString, fs);
-        ASendDataList.Add(sd);
+        Time := StrToDateTime(FieldByName('Time').AsWideString, LFormatSettings);
+        ASendDataList.Add(LSendData);
         Inc(Result);
         Next;
       end;
@@ -328,7 +328,7 @@ begin
   if not TableIsExist then
     Exit;
 
-  FDQuery1.Open('Select * From ' + TableName);
+  FDQuery1.Open('Select * From ' + FTableName);
   Result := FDQuery1.RecordCount;
   FDQuery1.Close;
 end;
@@ -342,15 +342,15 @@ begin
   if ADate.Trim = '' then
     ADate := FormatDateTime('yyyy-mm-dd', Now);
 
-  FDQuery1.Open('Select * From ' + TableName + ' Where Time like ''' + ADate + '%''');
+  FDQuery1.Open('Select * From ' + FTableName + ' Where Time like ''' + ADate + '%''');
   Result := FDQuery1.RecordCount;
   FDQuery1.Close;
 end;
 
 procedure TDataModuleBase.SetMailData(AMailData: TMailData);
 begin
-  MailData := AMailData;
-  with MailData do
+  FMailData := AMailData;
+  with FMailData do
   begin
     with TMemIniFile.Create('.\Config\Mail.ini', TEncoding.Unicode) do
     try
@@ -367,8 +367,8 @@ end;
 
 procedure TDataModuleBase.SetSettingsData(ASettingsData: TSettingsData);
 begin
-  SettingsData := ASettingsData;
-  with SettingsData do
+  FSettingsData := ASettingsData;
+  with FSettingsData do
   begin
     with TMemIniFile.Create('.\Config\Settings.ini', TEncoding.Unicode) do
     try
@@ -378,11 +378,11 @@ begin
       WriteBool('Send', 'UseInterval', UseInterval);
       WriteInteger('Send', 'IntervalTime', IntervalTime);
 
-      WriteString('Add', 'DefaultPostfix', DefaultPostfix);
-      WriteBool('Add', 'AutoPostfix', AutoPostfix);
-      WriteBool('Add', 'AutoWrap', AutoWrap);
-      WriteBool('Add', 'FilterRepeat', FilterRepeat);
-      WriteBool('Add', 'CheckImportedList', CheckImportedList);
+      WriteString('Import', 'DefaultPostfix', DefaultPostfix);
+      WriteBool('Import', 'AutoPostfix', AutoPostfix);
+      WriteBool('Import', 'AutoWrap', AutoWrap);
+      WriteBool('Import', 'FilterRepeat', FilterRepeat);
+      WriteBool('Import', 'CheckImportedList', CheckImportedList);
 
       WriteBool('Display', 'UseCustomTheme', UseCustomTheme);
       WriteInteger('Display', 'CustomTheme', CustomTheme);
@@ -396,13 +396,13 @@ end;
 
 procedure TDataModuleBase.SetSmtpData(ASmtpData: TSmtpData);
 var
-  ss: TStringStream;
+  LStringStream: TStringStream;
 begin
-  SmtpData := ASmtpData;
-  with SmtpData do
+  FSmtpData := ASmtpData;
+  with FSmtpData do
   begin
-    ss := TStringStream.Create('', TEncoding.Unicode);
-    with TMemIniFile.Create(ss, TEncoding.Unicode) do
+    LStringStream := TStringStream.Create('', TEncoding.Unicode);
+    with TMemIniFile.Create(LStringStream, TEncoding.Unicode) do
     try
       WriteString('Smtp', 'Username', Username);
       WriteString('Smtp', 'Password', Password);
@@ -413,8 +413,8 @@ begin
       WriteString('Display', 'DisplayName', DisplayName);
       UpdateFile;
     finally
-      ss.LoadFromStream(Stream);
-      TBytesStream.Create(ss.Bytes.XOREncrypt).SaveToFile('.\Config\Smtp.smss');
+      LStringStream.LoadFromStream(Stream);
+      TBytesStream.Create(LStringStream.Bytes.XOREncrypt).SaveToFile('.\Config\Smtp.smss');
       Free;
     end;
   end;
@@ -422,14 +422,14 @@ end;
 
 function TDataModuleBase.TableIsExist: Boolean;
 begin
-  TableName := 'BeenSend_' + StrToBin(SmtpData.Username);
-  FDQuery1.SQL.Text := 'Select * From sqlite_master Where tbl_name = ''' + TableName + '''';
+  FTableName := 'BeenSend_' + StrToBin(FSmtpData.Username);
+  FDQuery1.SQL.Text := 'Select * From sqlite_master Where tbl_name = ''' + FTableName + '''';
   Result := FDQuery1.RecordCount > 0;
 end;
 
 procedure TDataModuleBase.UpdateMailData;
 begin
-  with MailData do
+  with FMailData do
   begin
     with TMemIniFile.Create('.\Config\Mail.ini', TEncoding.Unicode) do
     try
@@ -445,7 +445,7 @@ end;
 
 procedure TDataModuleBase.UpdateSettingsData;
 begin
-  with SettingsData do
+  with FSettingsData do
   begin
     with TMemIniFile.Create('.\Config\Settings.ini', TEncoding.Unicode) do
     try
@@ -455,10 +455,10 @@ begin
       UseInterval := ReadBool('Send', 'UseInterval', False);
       IntervalTime := ReadInteger('Send', 'IntervalTime', 10);
 
-      DefaultPostfix := ReadString('Add', 'DefaultPostfix', 'qq.com');
-      AutoPostfix := ReadBool('Add', 'AutoPostfix', True);
-      AutoWrap := ReadBool('Add', 'AutoWrap', True);
-      FilterRepeat := ReadBool('Add', 'FilterRepeat', True);
+      DefaultPostfix := ReadString('Import', 'DefaultPostfix', 'qq.com');
+      AutoPostfix := ReadBool('Import', 'AutoPostfix', True);
+      AutoWrap := ReadBool('Import', 'AutoWrap', True);
+      FilterRepeat := ReadBool('Import', 'FilterRepeat', True);
       CheckImportedList := ReadBool('Add', 'CheckImportedList', True);
 
       UseCustomTheme := ReadBool('Display', 'UseCustomTheme', False);
@@ -472,15 +472,15 @@ end;
 
 procedure TDataModuleBase.UpdateSmtpData;
 var
-  bs: TBytesStream;
+  LBytesStream: TBytesStream;
 begin
-  with SmtpData do
+  with FSmtpData do
   begin
     if not TFile.Exists('.\Config\Smtp.smss') then
       TFile.Create('.\Config\Smtp.smss').Free;
 
-    bs := TBytesStream.Create(TFile.ReadAllBytes('.\Config\Smtp.smss').XORDecrypt);
-    with TMemIniFile.Create(bs, TEncoding.Unicode) do
+    LBytesStream := TBytesStream.Create(TFile.ReadAllBytes('.\Config\Smtp.smss').XORDecrypt);
+    with TMemIniFile.Create(LBytesStream, TEncoding.Unicode) do
     try
       Username := ReadString('Smtp', 'Username', '');
       Password := ReadString('Smtp', 'Password', '');
@@ -501,13 +501,13 @@ procedure TBase.Create;
 begin
   if not Assigned(GDataModuleBase) then
   begin
-    GDataModuleBase := TDataModuleBase.Create(Application);
     GReferenceCount := 0;
+    Application.CreateForm(TDataModuleBase, GDataModuleBase);
   end;
 
-  Inc(GReferenceCount);
   Supports(GDataModuleBase, StringToGUID('{3C52642F-1EF3-42D2-B6E3-4E4A9D021544}'), FBase);
   Supports(GDataModuleBase, StringToGUID('{B01FB75A-0399-439F-AAE6-2F2EDA3C90FF}'), FSmtp);
+  Inc(GReferenceCount);
 end;
 
 procedure TBase.Destroy;
@@ -537,8 +537,8 @@ begin
     with IdMessage1 do
     begin
       Clear;
-      Sender.Name := SmtpData.DisplayName;
-      Sender.Address := SmtpData.Username;
+      Sender.Name := FSmtpData.DisplayName;
+      Sender.Address := FSmtpData.Username;
       Recipients.Clear;
       Recipients.Add;
       Priority := mpNormal;
@@ -549,7 +549,7 @@ begin
     with TIdMessageBuilderHtml.Create do
     try
       Clear;
-      if MailData.IsHtml then
+      if FMailData.IsHtml then
       begin
         HtmlCharSet := 'UTF-8';
         Html.Text := ABody;
@@ -562,11 +562,11 @@ begin
 
       for var i in SAttachmentDataList do
       begin
-        var bs := TMemoryStream.Create;
-        with bs do
+        var LBytesStream := TMemoryStream.Create;
+        with LBytesStream do
         begin
           LoadFromFile(i.Path);
-          Attachments.Add(bs, '', i.Id);
+          Attachments.Add(LBytesStream, '', i.Id);
         end;
       end;
       FillMessage(IdMessage1);
@@ -591,19 +591,19 @@ function TSmtp.Login: Boolean;
 begin
   with FBase do
   try
-    IWait.StartWait;
+    FWaitCursor.StartWait;
     with IdSMTP1 do
     try
-      Host := SmtpData.Host;
-      Port := SmtpData.Port;
-      Username := SmtpData.Username;
-      Password := SmtpData.Password;
+      Host := FSmtpData.Host;
+      Port := FSmtpData.Port;
+      Username := FSmtpData.Username;
+      Password := FSmtpData.Password;
       IOHandler := nil;
-      if SmtpData.UseSSL then
+      if FSmtpData.UseSSL then
       begin
         IdSSLIOHandlerSocketOpenSSL1.SSLOptions.Method := sslvSSLv23;
         IOHandler := IdSSLIOHandlerSocketOpenSSL1;
-        if SmtpData.UseStartTLS then
+        if FSmtpData.UseStartTLS then
           UseTLS := utUseRequireTLS
         else
           UseTLS := utUseImplicitTLS;
@@ -628,7 +628,7 @@ begin
     end;
   finally
     Result := IdSMTP1.Connected;
-    IWait.StopWait;
+    FWaitCursor.StopWait;
   end;
 end;
 
@@ -646,13 +646,13 @@ begin
 
     with FDQuery1 do
     try
-      IWait.StartWait;
+      FWaitCursor.StartWait;
       if QueryBeenSend(Address, sdList) > 0 then
       begin
         Result := sdList[sdList.Count - 1];
         if Result.State = ssSuccess then
         begin
-          if not SettingsData.RepeatSend then
+          if not FSettingsData.RepeatSend then
           begin
             Result.State := ssRepeat;
             Exit;
@@ -687,18 +687,18 @@ begin
         else
           State := ssError;
         Time := Now;
-        Sql.Text := 'Insert Into ' + TableName + '(DisplayName,Address,Success,ErrorCode,ErrorText,Time) Values(:DisplayName,:Address,:Success,:ErrorCode,:ErrorText,:Time)';
+        Sql.Text := 'Insert Into ' + FTableName + '(DisplayName,Address,Success,ErrorCode,ErrorText,Time) Values(:DisplayName,:Address,:Success,:ErrorCode,:ErrorText,:Time)';
         ParamByName('DisplayName').AsWideString := DisplayName;
         ParamByName('Address').AsWideString := Address;
         ParamByName('Success').AsWideString := ret.ToString(TUseBoolStrs.True);
         ParamByName('ErrorCode').AsInteger := ErrorCode;
         ParamByName('ErrorText').AsWideString := ErrorText;
-        ParamByName('Time').AsWideString := FormatDateTime('yyyy-mm-dd hh:nn:ss', Time);
+        ParamByName('Time').AsWideString := FormatDateTime('yyyy-mm-dd hh:nn:LStringStream', Time);
         ExecSQL;
       end;
     finally
       Close;
-      IWait.StopWait;
+      FWaitCursor.StopWait;
     end;
   end;
 end;

@@ -3,7 +3,7 @@ unit UnitMain;
 interface
 
 uses
-  UnitType, UnitTools, UnitPluginManager, Winapi.Windows, System.IOUtils,
+  UnitType, UnitPackage, UnitPluginManager, Winapi.Windows, System.IOUtils,
   Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls,
   Vcl.Forms, Vcl.Menus, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ActnList,
   Vcl.Dialogs, Vcl.ExtDlgs, Vcl.ImgList, System.ImageList, System.Actions;
@@ -95,25 +95,28 @@ type
   private
     { Private declarations }
     FPackageBase: TBase;
-    PluginManager: TPluginManager;
-    LogList: TSendLogList;
-    AttachmentList: TAttachmentDataList;
-    Send: TSend;
-    IsModifed: Boolean;
+    FPluginManager: TPluginManager;
+    FSendLogList: TSendLogList;
+    FAttachmenDatatList: TAttachmentDataList;
+    FSend: TSend;
+    FIsModifed: Boolean;
     procedure StopSend;
     procedure WMGetMaxInfo(var Msg: TWMGetMinMaxInfo); message WM_GETMinMAXINFO;
+    procedure LoadPlugins;
     procedure PluginOnClick(Sender: TObject);
   public
     { Public declarations }
     procedure AddMailAddress(AMailaddress: string);
     procedure AddMailAddresss(AMailaddresss: TStrings);
-    procedure AddAttachment(AFileName: string);
-    procedure AddAttachments(AFileNames: TStrings);
+    procedure AddAttachment(AAttachmentFileName: string);
+    procedure AddAttachments(AAttachmentFileNames: TStrings);
     procedure UpdateAddress(SetSendButtonState: Boolean = True);
     procedure PrintLog(ASendLog: TSendLog);
     procedure PrintSendLog(ASendData: TSendData);
     procedure PrintSystemLog(AState, AInformation: string);
     procedure ClearLog;
+  public
+    property Send: TSend read FSend write FSend;
   end;
 
   TSend = class(TThread)
@@ -139,7 +142,7 @@ implementation
 
 uses
 {$IFDEF DEBUG}
-  UnitBase, UnitSettings, UnitAbout, UnitImport,
+  UnitSettings, UnitAbout, UnitImport,
 {$ENDIF}
   UnitPluginFrame, Vcl.Imaging.pngimage;
 {$R *.dfm}
@@ -162,12 +165,12 @@ end;
 
 procedure TFormMain.PrintLog(ASendLog: TSendLog);
 var
-  sl: PSendLog;
+  LSendLog: PSendLog;
 begin
-  New(sl);
-  sl^ := ASendLog;
+  New(LSendLog);
+  LSendLog^ := ASendLog;
 
-  LogList.Add(sl);
+  FSendLogList.Add(LSendLog);
   ListView1.Items.Count := ListView1.Items.Count + 1;
   ListView1.Items[0].MakeVisible(False);
   ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
@@ -175,9 +178,9 @@ end;
 
 procedure TFormMain.PrintSendLog(ASendData: TSendData);
 var
-  sl: TSendLog;
+  LSendLog: TSendLog;
 begin
-  with sl do
+  with LSendLog do
   begin
     ImageState := Ord(ASendData.State) - $50;
     Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', ASendData.Time);
@@ -200,16 +203,17 @@ begin
         end;
     else
 
+
     end;
   end;
-  PrintLog(sl);
+  PrintLog(LSendLog);
 end;
 
 procedure TFormMain.PrintSystemLog(AState, AInformation: string);
 var
-  sl: TSendLog;
+  LSendLog: TSendLog;
 begin
-  with sl do
+  with LSendLog do
   begin
     ImageState := Ord(ssSystem) - $50;
     Time := FormatDateTime('yyyy-mm-dd hh:nn:ss', Now);
@@ -217,7 +221,7 @@ begin
     State := AState;
     Information := AInformation;
   end;
-  PrintLog(sl);
+  PrintLog(LSendLog);
 end;
 
 procedure TFormMain.SplitterCanResize(Sender: TObject; var NewSize: Integer; var Accept: Boolean);
@@ -252,24 +256,25 @@ end;
 
 procedure TFormMain.ModifyMailData(Sender: TObject);
 var
-  md: TMailData;
+  LMailData: TMailData;
+  LAttachmentData: PAttachmentData;
 begin
-  if not IsModifed then
+  if not FIsModifed then
     Exit;
 
-  md := FPackageBase.Base.GetMailData;
-  with md do
+  LMailData := FPackageBase.Base.GetMailData;
+  with LMailData do
   begin
     IsHtml := CheckBoxIsHtml.Checked;
     Attachments := '';
-    for var i in AttachmentList do
-      Attachments := Attachments + i.Path + ',';
+    for LAttachmentData in FAttachmenDatatList do
+      Attachments := Attachments + LAttachmentData.Path + ',';
 
     Attachments := Attachments.Remove(Attachments.Length - 1);
     Subject := EditSubject.Text;
     Body := MemoBody.Text;
   end;
-  FPackageBase.Base.SetMailData(md);
+  FPackageBase.Base.SetMailData(LMailData);
 end;
 
 procedure TFormMain.ActionAboutExecute(Sender: TObject);
@@ -318,7 +323,7 @@ end;
 
 procedure TFormMain.ActionImportExecute(Sender: TObject);
 begin
-  with UnitTools.TImport.Create do
+  with UnitPackage.TImport.Create do
   try
     AddMailAddresss(TStrings(Dialog.Show));
   finally
@@ -334,7 +339,7 @@ begin
     try
       SetCurrentDir(ExtractFilePath(Application.ExeName));
       LoadFromFile(OpenTextFileDialog1.FileName, OpenTextFileDialog1.Encodings.Objects[OpenTextFileDialog1.EncodingIndex] as TEncoding);
-      with UnitTools.TImport.Create do
+      with UnitPackage.TImport.Create do
       try
         AddMailAddresss(Import.AutoPostfixs(Text));
       finally
@@ -348,13 +353,13 @@ end;
 
 procedure TFormMain.ActionSendStartExecute(Sender: TObject);
 begin
-  Send := TSend.Create(Self);
+  FSend := TSend.Create(Self);
 end;
 
 procedure TFormMain.ActionSendStopExecute(Sender: TObject);
 begin
-  Send.Terminate;
-  Send := nil;
+  FSend.Terminate;
+  FSend := nil;
 end;
 
 procedure TFormMain.ActionSettingsExecute(Sender: TObject);
@@ -372,47 +377,51 @@ begin
     ListView1.UpdateItems(ListView1.TopItem.Index, ListView1.Items.Count - 1);
 end;
 
-procedure TFormMain.AddAttachment(AFileName: string);
+procedure TFormMain.AddAttachment(AAttachmentFileName: string);
+var
+  LAttachmentFileName, id: string;
+  LAttachmentData, LNewAttachmentData: PAttachmentData;
 begin
-  var filename := ExtractFileName(AFileName);
-  var id := filename.Remove(filename.LastIndexOf('.'));
-  var ad: PAttachmentData;
-  New(ad);
-  for var i in AttachmentList do
-    if i.Id = id then
+  LAttachmentFileName := ExtractFileName(AAttachmentFileName.Trim);
+  id := LAttachmentFileName.Remove(LAttachmentFileName.LastIndexOf('.'));
+  New(LNewAttachmentData);
+  for LAttachmentData in FAttachmenDatatList do
+    if LAttachmentData.Id = id then
       id := id + '1';
-  ad.Id := id;
-  ad.Path := AFileName;
-  AttachmentList.Add(ad);
+  LNewAttachmentData.Id := id;
+  LNewAttachmentData.Path := AAttachmentFileName;
+  FAttachmenDatatList.Add(LNewAttachmentData);
 
   ListView2.Items.Count := ListView2.Items.Count + 1;
   ListView2.Items[ListView2.Items.Count - 1].MakeVisible(False);
   ListView2.UpdateItems(ListView2.TopItem.Index, ListView2.Items.Count - 1);
 end;
 
-procedure TFormMain.AddAttachments(AFileNames: TStrings);
+procedure TFormMain.AddAttachments(AAttachmentFileNames: TStrings);
+var
+  LString: string;
 begin
-  for var i in AFileNames do
-    if i.Trim <> '' then
-      AddAttachment(i);
+  for LString in AAttachmentFileNames do
+    AddAttachment(LString);
 end;
 
 procedure TFormMain.AddMailAddress(AMailaddress: string);
 begin
   if FPackageBase.Base.GetSettingsData.FilterRepeat then
     if FPackageBase.Base.GetSettingsData.CheckImportedList then
-      if ListBoxMailAddress.Items.IndexOf(AMailaddress) <> -1 then
+      if ListBoxMailAddress.Items.IndexOf(AMailaddress.Trim) <> -1 then
         Exit;
 
   Application.ProcessMessages;
-  ListBoxMailAddress.Items.Add(AMailaddress);
+  ListBoxMailAddress.Items.Add(AMailaddress.Trim);
 end;
 
 procedure TFormMain.AddMailAddresss(AMailaddresss: TStrings);
+var
+  LString: string;
 begin
-  for var i in AMailaddresss do
-    if i.Trim <> '' then
-      AddMailAddress(i);
+  for LString in AMailaddresss do
+    AddMailAddress(LString);
 end;
 
 procedure TFormMain.ClearLog;
@@ -430,9 +439,11 @@ begin
 end;
 
 procedure TFormMain.ListView1CustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+var
+  LIndex: Integer;
 begin
-  var i := LogList.Count - Item.Index - 1;
-  with LogList[i]^ do
+  LIndex := FSendLogList.Count - Item.Index - 1;
+  with FSendLogList[LIndex]^ do
   begin
     case TState(ImageState + $50) of
       ssSuccess:
@@ -445,6 +456,7 @@ begin
         Sender.Canvas.Brush.Color := clGray;
     else
 
+
     end;
   end;
 
@@ -453,52 +465,64 @@ begin
 end;
 
 procedure TFormMain.ListView1Data(Sender: TObject; Item: TListItem);
+var
+  LIndex: Integer;
+  LSendLog: PSendLog;
 begin
-  var i := LogList.Count - Item.Index - 1;
-  var sl := LogList[i];
-  with sl^ do
+  LIndex := FSendLogList.Count - Item.Index - 1;
+  LSendLog := FSendLogList[LIndex];
+  with LSendLog^ do
   begin
     Item.StateIndex := ImageState;
     Item.SubItems.Add(Time);
     Item.SubItems.Add(Address);
     Item.SubItems.Add(State);
     Item.SubItems.Add(Information);
-    Item.Data := sl;
+    Item.Data := LSendLog;
   end;
 end;
 
 procedure TFormMain.ListView1Deletion(Sender: TObject; Item: TListItem);
+var
+  LIndex: Integer;
 begin
-  var i := LogList.Count - Item.Index - 1;
-  Dispose(LogList[i]);
-  LogList.Delete(i);
+  LIndex := FSendLogList.Count - Item.Index - 1;
+  Dispose(FSendLogList[LIndex]);
+  FSendLogList.Delete(LIndex);
   ListView1.Items.Count := ListView1.Items.Count - 1;
 end;
 
 procedure TFormMain.ListView1Resize(Sender: TObject);
+var
+  LWidth, LIndex: Integer;
 begin
-  var w := 0;
-  for var i := 0 to 3 do
-    Inc(w, ListView1.Column[i].Width);
-  ListView1.Column[4].Width := ListView1.Width - w + 50;
+  LWidth := 0;
+  for LIndex := 0 to 3 do
+    Inc(LWidth, ListView1.Column[LIndex].Width);
+  ListView1.Column[4].Width := ListView1.Width - LWidth + 50;
 end;
 
 procedure TFormMain.ListView2Data(Sender: TObject; Item: TListItem);
+var
+  LIndex: Integer;
+  LAttachmentData: PAttachmentData;
 begin
-  var i := Item.Index;
-  var ad := AttachmentList[i];
-  with ad^ do
+  LIndex := Item.Index;
+  LAttachmentData := FAttachmenDatatList[LIndex];
+  with LAttachmentData^ do
   begin
-    Item.Caption := ad.Id;
-    Item.SubItems.Add(ad.Path);
+    Item.Caption := LAttachmentData.Id;
+    Item.SubItems.Add(LAttachmentData.Path);
   end;
 end;
 
 procedure TFormMain.ListView2Deletion(Sender: TObject; Item: TListItem);
+var
+  LIndex: Integer;
 begin
-  var i := Item.Index;
-  Dispose(AttachmentList[i]);
-  AttachmentList.Delete(i);
+  LIndex := Item.Index;
+  Dispose(FAttachmenDatatList[LIndex]);
+  FAttachmenDatatList.Delete(LIndex);
   ListView2.Items.Count := ListView2.Items.Count - 1;
 end;
 
@@ -507,170 +531,206 @@ begin
   ListView2.Column[1].Width := ListView2.Width - ListView2.Column[0].Width + 100;
 end;
 
+procedure TFormMain.LoadPlugins;
+
+  function FindMenu(AMenuName: string; var AMenuItem: TMenuItem): Boolean;
+  var
+    LMenuItem: TMenuItem;
+  begin
+    Result := False;
+    for LMenuItem in MainMenu.Items do
+    begin
+      if LMenuItem.Caption = AMenuName then
+      begin
+        AMenuItem := LMenuItem;
+        Result := True;
+        Break;
+      end;
+    end;
+  end;
+
+  function CreateMenu(AInheriteState: TInheriteState; AMenuIndex: Integer; AMenuName: string; var AMenuItem: TMenuItem): Boolean;
+  var
+    mi: TMenuItem;
+  begin
+    mi := nil;
+    case AInheriteState of
+      IsDefault:
+        begin
+          if not FindMenu('插件(&P)', mi) then
+          begin
+            mi := TMenuItem.Create(MainMenu);
+            mi.Caption := '插件(&P)';
+            MainMenu.Items.Insert(2, mi);
+          end;
+        end;
+      IsIndex:
+        begin
+          mi := TMenuItem.Create(MainMenu);
+          mi.Caption := AMenuName;
+          if AMenuIndex < MainMenu.Items.Count then
+            MainMenu.Items.Insert(AMenuIndex, mi)
+          else
+            MainMenu.Items.Add(mi);
+        end;
+      IsName:
+        begin
+          if not FindMenu(AMenuName, mi) then
+          begin
+            mi := TMenuItem.Create(MainMenu);
+            mi.Caption := AMenuName;
+            MainMenu.Items.Add(mi);
+          end;
+        end;
+    end;
+    AMenuItem := mi;
+    Result := Assigned(AMenuItem);
+  end;
+
+  function CreateSubMenu(AParentMenuItem: TMenuItem; AHasMultiLevel: Boolean; AMenuName: string; AMenuNames: TStrings; var AMenuItem: TMenuItem): Boolean;
+  var
+    LName: string;
+    LParentMenuItem, LSubMenuItem: TMenuItem;
+  begin
+    Result := False;
+    LSubMenuItem := nil;
+    if not Assigned(AParentMenuItem) then
+      Exit;
+
+    LParentMenuItem := AParentMenuItem;
+    if AHasMultiLevel then
+    begin
+      if not Assigned(AMenuNames) then
+        Exit;
+
+      for LName in AMenuNames do
+      begin
+        LSubMenuItem := TMenuItem.Create(MainMenu);
+        LSubMenuItem.Caption := LName;
+        LParentMenuItem.Add(LSubMenuItem);
+        LParentMenuItem := LSubMenuItem;
+      end;
+    end
+    else
+    begin
+      LSubMenuItem := TMenuItem.Create(MainMenu);
+      LSubMenuItem.Caption := AMenuName;
+      LParentMenuItem.Add(LSubMenuItem);
+    end;
+
+    AMenuItem := LSubMenuItem;
+    Result := Assigned(AMenuItem);
+  end;
+
+var
+  LPluginObject: PPluginObject;
+  LPluginData: TPluginData;
+  LParentMenuItem, LSubMenuItem: TMenuItem;
+begin
+  for LPluginObject in FPluginManager.PluginObjectList do
+  begin
+    LPluginData := LPluginObject.PluginData;
+    if not CreateMenu(LPluginData.InheriteState, LPluginData.ParentIndex, LPluginData.ParentName, LParentMenuItem) then
+      Continue;
+    if not CreateSubMenu(LParentMenuItem, LPluginData.HasMultiLevel, LPluginData.Name, LPluginData.Names, LSubMenuItem) then
+      Continue;
+    LSubMenuItem.Hint := LPluginData.Hint;
+    LSubMenuItem.OnClick := PluginOnClick;
+    LSubMenuItem.Tag := NativeInt(LPluginObject);
+
+    if LPluginData.HasWindow then
+      LPluginObject.Plugin.SetMainForm(Self);
+
+    LPluginObject.Plugin.SetMenuItem(LSubMenuItem);
+    LPluginObject.PluginEvent.Execute;
+  end;
+end;
+
 procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  if Assigned(Send) then
-    Send.Terminate;
+  if Assigned(FSend) then
+    FSend.Terminate;
 end;
 
 procedure TFormMain.PluginOnClick(Sender: TObject);
+var
+  LPluginObject: PPluginObject;
 begin
-  var pi := IPlugin((Sender as TMenuItem).Tag);
-  if pi.GetPluginData.CanChecked then
-    pi.OnChecked
+  LPluginObject := PPluginObject((Sender as TMenuItem).Tag);
+  if LPluginObject.PluginData.CanChecked then
+    LPluginObject.PluginMenuEvent.OnChecked
   else
-    pi.OnClick;
+    LPluginObject.PluginMenuEvent.OnClick;
 end;
 
 procedure TFormMain.FormCreate(Sender: TObject);
 var
-  item: PPluginObject;
-  mi, gmi, pmi, nmi: TMenuItem;
+  LPngImage: TPngImage;
+  LBitmap: TBitmap;
+  LStrings: TStrings;
 begin
-  FPackageBase := UnitTools.TBase.Create;
+  FPackageBase := UnitPackage.TBase.Create;
   Caption := FPackageBase.Base.GetSmtpData.Username;
-  LogList := TSendLogList.Create;
-  AttachmentList := TAttachmentDataList.Create;
-  PluginManager := TPluginManager.Create('.\Plugins');
-  for item in PluginManager.Plugins do
-  begin
-    pmi := nil;
-
-    if item.PluginData.ParentIndex > 0 then
-    begin
-      if item.PluginData.ParentIndex < MainMenu.Items.Count then
-      begin
-        if item.PluginData.ParentName.Trim = '' then
-          pmi := MainMenu.Items[item.PluginData.ParentIndex]
-        else
-        begin
-          pmi := TMenuItem.Create(MainMenu);
-          pmi.Caption := item.PluginData.ParentName;
-          MainMenu.Items.Insert(item.PluginData.ParentIndex, pmi);
-        end;
-      end;
-    end
-    else
-    begin
-      for mi in MainMenu.Items do
-      begin
-        if mi.Caption = item.PluginData.ParentName then
-        begin
-          pmi := mi;
-          Break;
-        end;
-      end;
-    end;
-
-    if not Assigned(pmi) then
-    begin
-      if item.PluginData.ParentName.Trim = '' then
-      begin
-        for mi in MainMenu.Items do
-        begin
-          if mi.Caption = '插件(&P)' then
-            pmi := mi;
-        end;
-
-        if not Assigned(pmi) then
-        begin
-          pmi := TMenuItem.Create(MainMenu);
-          pmi.Caption := '插件(&P)';
-          MainMenu.Items.Insert(2, pmi);
-        end;
-      end
-      else
-      begin
-        pmi := TMenuItem.Create(MainMenu);
-        pmi.Caption := item.PluginData.ParentName;
-        MainMenu.Items.Add(pmi);
-      end;
-    end;
-
-    gmi := nil;
-    nmi := TMenuItem.Create(MainMenu);
-    if item.PluginData.GroupName.Trim <> '' then
-    begin
-      for mi in MainMenu.Items[MainMenu.Items.IndexOf(pmi)] do
-      begin
-        if mi.Caption = item.PluginData.GroupName then
-        begin
-          gmi := mi;
-          Break;
-        end;
-      end;
-
-      if not Assigned(gmi) then
-      begin
-        gmi := TMenuItem.Create(MainMenu);
-        gmi.Caption := item.PluginData.GroupName;
-        MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(gmi);
-      end;
-
-      pmi.Items[MainMenu.Items[MainMenu.Items.IndexOf(pmi)].IndexOf(gmi)].Add(nmi);
-    end
-    else
-      MainMenu.Items[MainMenu.Items.IndexOf(pmi)].Add(nmi);
-
-    nmi.Caption := item.PluginData.Name;
-    nmi.Hint := item.PluginData.Hint;
-    nmi.OnClick := PluginOnClick;
-    nmi.Tag := NativeInt(item.PluginInterface);
-
-    item.PluginInterface.SetMenuItem(nmi);
-    item.PluginInterface.Execute;
-  end;
+  FSendLogList := TSendLogList.Create;
+  FAttachmenDatatList := TAttachmentDataList.Create;
+  FPluginManager := TPluginManager.Create('.\Plugins');
+  LoadPlugins;
 
   if TFile.Exists('.\Res\State.png') then
   begin
-    var png: TPngImage;
-    png := TPngImage.Create;
-    png.LoadFromFile('.\Res\State.png');
-    var bmp: TBitmap;
-    bmp := TBitmap.Create;
-    bmp.Assign(png);
-    ImageList1.Add(bmp, nil);
-    bmp.Free;
-    png.Free;
+    LPngImage := TPngImage.Create;
+    LPngImage.LoadFromFile('.\Res\State.png');
+    LBitmap := TBitmap.Create;
+    LBitmap.Assign(LPngImage);
+    ImageList1.Add(LBitmap, nil);
+    LBitmap.Free;
+    LPngImage.Free;
   end;
 
-  IsModifed := False;
+  FIsModifed := False;
   with FPackageBase.Base.GetMailData do
   begin
     CheckBoxIsHtml.Checked := IsHtml;
-    var sl := TStringList.Create;
-    sl.Delimiter := ';';
-    sl.DelimitedText := Attachments;
-    AddAttachments(sl);
+    LStrings := TStringList.Create;
+    LStrings.StrictDelimiter := True;
+    LStrings.Delimiter := ';';
+    LStrings.DelimitedText := Attachments;
+    AddAttachments(LStrings);
+    LStrings.Free;
     EditSubject.Text := Subject;
     MemoBody.Text := Body;
   end;
 
   if TFile.Exists('.\Backup.txt') then
   begin
-    var sl := TStringList.Create;
-    sl.LoadFromFile('.\Backup.txt', TEncoding.Unicode);
-    AddMailAddresss(sl);
+    LStrings := TStringList.Create;
+    LStrings.StrictDelimiter := True;
+    LStrings.LoadFromFile('.\Backup.txt', TEncoding.Unicode);
+    AddMailAddresss(LStrings);
+    LStrings.Free;
   end;
 
   UpdateAddress;
   OpenTextFileDialog1.EncodingIndex := 2;
-  IsModifed := True;
+  FIsModifed := True;
 end;
 
 procedure TFormMain.FormDestroy(Sender: TObject);
+var
+  LSendlog: PSendLog;
+  LAttachmentData: PAttachmentData;
 begin
-  for var i in LogList do
-    Dispose(i);
-  LogList.Free;
+  for LSendlog in FSendLogList do
+    Dispose(LSendlog);
+  FSendLogList.Free;
 
-  for var i in AttachmentList do
+  for LAttachmentData in FAttachmenDatatList do
   begin
-    Dispose(i);
+    Dispose(LAttachmentData);
   end;
-  AttachmentList.Free;
+  FAttachmenDatatList.Free;
 
-  PluginManager.Free;
+  FPluginManager.Free;
   FPackageBase.Free;
 end;
 
@@ -725,6 +785,9 @@ begin
 end;
 
 procedure TSend.Update;
+var
+  LCount: Integer;
+  LSendData: TSendData;
 begin
   with FFormMain do
   begin
@@ -741,9 +804,9 @@ begin
         Break;
       end;
 
-      FPackageBase.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, AttachmentList);
+      FPackageBase.Smtp.UpdateMessage(EditSubject.Text, MemoBody.Text, FAttachmenDatatList);
 
-      var i: Integer := 0;
+      LCount := 0;
       while ListBoxMailAddress.Items.Count <> 0 do
       begin
         if Terminated then
@@ -752,16 +815,16 @@ begin
         Application.ProcessMessages;
         StatusBarState.Panels[3].Text := '状态：正在发送';
 
-        var sd := FPackageBase.Smtp.Send(ListBoxMailAddress.Items[0].Trim);
-        if sd.State = ssSuccess then
-          Inc(i);
+        LSendData := FPackageBase.Smtp.Send(ListBoxMailAddress.Items[0].Trim);
+        if LSendData.State = ssSuccess then
+          Inc(LCount);
 
-        PrintSendLog(sd);
+        PrintSendLog(LSendData);
         ListBoxMailAddress.Items.Delete(0);
         UpdateAddress(False);
 
         if FPackageBase.Base.GetSettingsData.AutoStop then
-          if i >= FPackageBase.Base.GetSettingsData.StopNumber then
+          if LCount >= FPackageBase.Base.GetSettingsData.StopNumber then
           begin
             StopSend;
             Break;

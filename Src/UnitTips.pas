@@ -16,12 +16,12 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    AutoComplete: procedure of object;
+    FAutoComplete: procedure of object;
+  public
+    { Public declarations }
     procedure SetAutoComplete(AAutoComplete: TAutoComplete);
     procedure SetPostfixs(APostfixs: TStrings);
     function GetPostfix: string;
-  public
-    { Public declarations }
   end;
 
   TTips = class(TInterfacedObject, IForm, ITips)
@@ -59,8 +59,8 @@ begin
     if Key = VK_RETURN then
     begin
       if ListBox1.ItemIndex <> -1 then
-        if Assigned(AutoComplete) then
-          AutoComplete;
+        if Assigned(FAutoComplete) then
+          FAutoComplete;
     end
     else if Key in [VK_LEFT, VK_RIGHT] then
       Hide
@@ -71,25 +71,25 @@ end;
 
 procedure TFormTips.ListBox1MouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
-  i, index: Integer;
+  i, LIndex: Integer;
 begin
-  index := -1;
+  LIndex := -1;
   for i := 0 to listBox1.Items.Count - 1 do
   begin
     if ListBox1.ItemRect(i).Contains(TPoint.Create(X, Y)) then
     begin
-      index := i;
+      LIndex := i;
       break;
     end;
   end;
-  if (index <> -1) and not listBox1.Selected[index] then
+  if (LIndex <> -1) and not listBox1.Selected[LIndex] then
   begin
     listBox1.Selected[listBox1.ItemIndex] := False;
   end;
 
-  if (index <> -1) and not listBox1.Selected[index] then
+  if (LIndex <> -1) and not listBox1.Selected[LIndex] then
   begin
-    listBox1.Selected[index] := True;
+    listBox1.Selected[LIndex] := True;
   end;
 end;
 
@@ -97,14 +97,14 @@ procedure TFormTips.ListBox1MouseUp(Sender: TObject; Button: TMouseButton; Shift
 begin
   if ListBox1.ItemIndex <> -1 then
   begin
-    if Assigned(AutoComplete) then
-      AutoComplete;
+    if Assigned(FAutoComplete) then
+      FAutoComplete;
   end;
 end;
 
 procedure TFormTips.SetAutoComplete(AAutoComplete: TAutoComplete);
 begin
-  AutoComplete := AAutoComplete;
+  FAutoComplete := AAutoComplete;
 end;
 
 procedure TFormTips.SetPostfixs(APostfixs: TStrings);

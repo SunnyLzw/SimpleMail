@@ -3,7 +3,7 @@ unit UnitImport;
 interface
 
 uses
-  UnitType, UnitTools, Winapi.Windows, Winapi.Messages, System.SysUtils,
+  UnitType, UnitPackage, Winapi.Windows, Winapi.Messages, System.SysUtils,
   System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
   Vcl.Dialogs, Vcl.StdCtrls;
 
@@ -19,14 +19,14 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
-    MailAddresss: TStrings;
+    FMailAddresss: TStrings;
     FPackageBase: TBase;
     FPackageTips: TTips;
     FCustomFormTips: TCustomForm;
     FOriginalActive: TNotifyEvent;
     procedure NewActivate(Sender: TObject);
-    function AutoPostfix(var Str: string): Boolean;
-    function AutoPostfixs(Str: string): TStrings;
+    function AutoPostfix(var AString: string): Boolean;
+    function AutoPostfixs(AString: string): TStrings;
     procedure AutoComplete;
   public
     { Public declarations }
@@ -46,80 +46,79 @@ type
   end;
 
 implementation
-
 {$IFDEF DEBUG}
 
 uses
-  UnitBase, UnitTips;
+  UnitTips;
 {$ENDIF}
-
 {$R *.dfm}
 
 procedure TFormImport.AutoComplete;
 var
-  str, head, tail: string;
-  col, line, i: Integer;
+  LPostfix, LHeadString, LTailString: string;
+  LColumn, LLine, LCurrent: Integer;
 begin
   FCustomFormTips.Hide;
-  str := FPackageTips.Tips.GetPostfix;
+  LPostfix := FPackageTips.Tips.GetPostfix;
   if FPackageBase.Base.GetSettingsData.AutoWrap then
-    str := str + #13#10;
+    LPostfix := LPostfix + #13#10;
 
-  line := Memo1.CaretPos.Y;
-  col := Memo1.CaretPos.X;
+  LLine := Memo1.CaretPos.Y;
+  LColumn := Memo1.CaretPos.X;
 
-  head := Memo1.Lines[line].Substring(0, col);
-  tail := '';
-  if col <> Memo1.Lines[line].Length then
-    tail := Memo1.Lines[line].Substring(col, Memo1.Lines[line].Length);
+  LHeadString := Memo1.Lines[LLine].Substring(0, LColumn);
+  LTailString := '';
+  if LColumn <> Memo1.Lines[LLine].Length then
+    LTailString := Memo1.Lines[LLine].Substring(LColumn, Memo1.Lines[LLine].Length);
 
-//  i := Memo1.SelStart + str.Length + tail.Length;
-  i := Memo1.SelStart + str.Length;
-  Memo1.Lines[line] := head + str + tail;
-  Memo1.SelStart := i;
+//  LCurrent := Memo1.SelStart + LPostfix.Length + LTailString.Length;
+  LCurrent := Memo1.SelStart + LPostfix.Length;
+  Memo1.Lines[LLine] := LHeadString + LPostfix + LTailString;
+  Memo1.SelStart := LCurrent;
   Memo1.SetFocus;
 end;
 
-function TFormImport.AutoPostfix(var Str: string): Boolean;
+function TFormImport.AutoPostfix(var AString: string): Boolean;
 begin
-  Str := Str.Trim;
-  if Str <> '' then
+  AString := AString.Trim;
+  if AString <> '' then
   begin
-    if Str.IndexOf('@') = -1 then
-      Str := Str + '@' + FPackageBase.Base.GetSettingsData.DefaultPostfix
-    else if Str.IndexOf('.') = -1 then
-      Str := Str + FPackageBase.Base.GetSettingsData.DefaultPostfix;
+    if AString.IndexOf('@') = -1 then
+      AString := AString + '@' + FPackageBase.Base.GetSettingsData.DefaultPostfix
+    else if AString.IndexOf('.') = -1 then
+      AString := AString + FPackageBase.Base.GetSettingsData.DefaultPostfix;
     Result := True;
   end
   else
     Result := False;
 end;
 
-function TFormImport.AutoPostfixs(Str: string): TStrings;
+function TFormImport.AutoPostfixs(AString: string): TStrings;
 var
-  sl: TStringList;
-  tmp: string;
+  LStrings: TStrings;
+  LString, LTempString: string;
 begin
-  sl := TStringList.Create;
-  sl.Text := Str;
+  LStrings := TStringList.Create;
+  LStrings.StrictDelimiter := True;
+  LStrings.Text := AString;
   Result := TStringList.Create;
-  for var i in sl do
+  for LString in LStrings do
   begin
-    tmp := i;
-    if not AutoPostfix(tmp) then
+    LTempString := LString;
+    if not AutoPostfix(LTempString) then
       Continue;
 
     if FPackageBase.Base.GetSettingsData.FilterRepeat then
-      if Result.IndexOf(tmp) <> -1 then
+      if Result.IndexOf(LTempString) <> -1 then
         Continue;
 
-    Result.Append(tmp);
+    Result.Append(LTempString);
   end;
 end;
 
 procedure TFormImport.ButtonImportClick(Sender: TObject);
 begin
-  MailAddresss := AutoPostfixs(Memo1.Lines.Text);
+  FMailAddresss := AutoPostfixs(Memo1.Lines.Text);
   Close;
 end;
 
@@ -127,12 +126,13 @@ procedure TFormImport.FormCreate(Sender: TObject);
 begin
   FOriginalActive := Application.OnActivate;
   Application.OnActivate := NewActivate;
-  FPackageBase := UnitTools.TBase.Create;
-  FPackageTips := UnitTools.TTips.Create;
+  FPackageBase := UnitPackage.TBase.Create;
+  FPackageTips := UnitPackage.TTips.Create;
   FPackageTips.Tips.SetAutoComplete(AutoComplete);
   FPackageTips.Tips.SetPostfixs(FPackageBase.Base.GetPostfixs);
   FCustomFormTips := TCustomForm(FPackageTips.Form.GetObject);
-  MailAddresss := TStringList.Create;
+  FMailAddresss := TStringList.Create;
+  FMailAddresss.StrictDelimiter := True;
 end;
 
 procedure TFormImport.FormDestroy(Sender: TObject);
@@ -145,34 +145,34 @@ end;
 
 procedure TFormImport.Memo1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
-  rect: TRect;
-  vSbi, hSbi: tagSCROLLBARINFO;
-  col, line, h, w: Integer;
+  LClient: TPoint;
+  LVScrollBarInfo, LHScrollBarInfo: tagSCROLLBARINFO;
+  LColumn, LLine, LHeight, LWidth: Integer;
 begin
-  rect := ClientToScreen(ClientRect);
-  vSbi.cbSize := SizeOf(vSbi);
-  hSbi.cbSize := SizeOf(hSbi);
-  GetScrollBarInfo(Memo1.Handle, Integer(OBJID_VSCROLL), vSbi);
-  GetScrollBarInfo(Memo1.Handle, Integer(OBJID_HSCROLL), hSbi);
-  col := Memo1.CaretPos.X;
-  line := Memo1.CaretPos.Y;
-  if col = 0 then
+  LClient := ClientToScreen(ClientRect.Location);
+  LVScrollBarInfo.cbSize := SizeOf(LVScrollBarInfo);
+  LHScrollBarInfo.cbSize := SizeOf(LHScrollBarInfo);
+  GetScrollBarInfo(Memo1.Handle, Integer(OBJID_VSCROLL), LVScrollBarInfo);
+  GetScrollBarInfo(Memo1.Handle, Integer(OBJID_HSCROLL), LHScrollBarInfo);
+  LColumn := Memo1.CaretPos.X;
+  LLine := Memo1.CaretPos.Y;
+  if LColumn = 0 then
     Exit;
 
   if (ssShift in Shift) and (Key = Ord('2')) then
   begin
-    if Memo1.Lines[line].Trim <> '' then
+    if Memo1.Lines[LLine].Trim <> '' then
     begin
-      h := Canvas.TextHeight(Memo1.Lines[line]) * (line + 1);
-      w := Canvas.TextWidth(Memo1.Lines[line] + '@') + 2;
+      LHeight := Canvas.TextHeight(Memo1.Lines[LLine]) * (LLine + 1);
+      LWidth := Canvas.TextWidth(Memo1.Lines[LLine] + '@') + 2;
 
-      FCustomFormTips.Top := rect.Top + Memo1.BoundsRect.Top + h;
-      if (FCustomFormTips.Top > rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height) then
-        FCustomFormTips.Top := rect.Top + Memo1.BoundsRect.Bottom - hSbi.rcScrollBar.Height;
+      FCustomFormTips.Top := LClient.Y + Memo1.BoundsRect.Top + LHeight;
+      if (FCustomFormTips.Top > LClient.Y + Memo1.BoundsRect.Bottom - LHScrollBarInfo.rcScrollBar.Height) then
+        FCustomFormTips.Top := LClient.Y + Memo1.BoundsRect.Bottom - LHScrollBarInfo.rcScrollBar.Height;
 
-      FCustomFormTips.Left := rect.Left + Memo1.BoundsRect.Left + w;
-      if (FCustomFormTips.Left > rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width) then
-        FCustomFormTips.Left := rect.Left + Memo1.BoundsRect.Right - vSbi.rcScrollBar.Width;
+      FCustomFormTips.Left := LClient.X + Memo1.BoundsRect.Left + LWidth;
+      if (FCustomFormTips.Left > LClient.X + Memo1.BoundsRect.Right - LVScrollBarInfo.rcScrollBar.Width) then
+        FCustomFormTips.Left := LClient.X + Memo1.BoundsRect.Right - LVScrollBarInfo.rcScrollBar.Width;
 
       FCustomFormTips.Show;
     end;
@@ -181,29 +181,29 @@ end;
 
 procedure TFormImport.Memo1KeyPress(Sender: TObject; var Key: Char);
 var
-  col, line: Integer;
-  head, tail: string;
+  LColumn, LLine: Integer;
+  LHeadString, LTailString: string;
 begin
-  col := Memo1.CaretPos.X;
-  line := Memo1.CaretPos.Y;
-  if col = 0 then
+  LColumn := Memo1.CaretPos.X;
+  LLine := Memo1.CaretPos.Y;
+  if LColumn = 0 then
     Exit;
 
   if Key = Chr(VK_RETURN) then
   begin
-    if (line = 0) and (col = 0) then
+    if (LLine = 0) and (LColumn = 0) then
       Exit;
 
-    head := Memo1.Lines[line].Substring(0, col);
-    tail := '';
-    if col <> Memo1.Lines[line].Length then
-      tail := Memo1.Lines[line].Substring(col, Memo1.Lines[line].Length);
-    if AutoPostfix(head) then
+    LHeadString := Memo1.Lines[LLine].Substring(0, LColumn);
+    LTailString := '';
+    if LColumn <> Memo1.Lines[LLine].Length then
+      LTailString := Memo1.Lines[LLine].Substring(LColumn, Memo1.Lines[LLine].Length);
+    if AutoPostfix(LHeadString) then
     begin
-      head := head + #13#10;
-      Memo1.Lines[line] := head + tail;
-      if tail <> '' then
-        Memo1.SelStart := Memo1.SelStart - tail.Length;
+      LHeadString := LHeadString + #13#10;
+      Memo1.Lines[LLine] := LHeadString + LTailString;
+      if LTailString <> '' then
+        Memo1.SelStart := Memo1.SelStart - LTailString.Length;
       Key := #0;
     end;
   end;
@@ -254,7 +254,7 @@ end;
 function TImport.Show: TObject;
 begin
   FFormImport.ShowModal;
-  Result := TObject(FFormImport.MailAddresss);
+  Result := TObject(FFormImport.FMailAddresss);
 end;
 
 end.

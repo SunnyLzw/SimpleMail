@@ -3,8 +3,7 @@ unit UnitAbout;
 interface
 
 uses
-  UnitType, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Controls,
+  UnitType, System.Classes, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Controls,
   Vcl.Imaging.pngimage;
 
 type

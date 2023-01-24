@@ -11,7 +11,9 @@ object FormAbout: TFormAbout
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OldCreateOrder = True
   Position = poMainFormCenter
+  PixelsPerInch = 96
   TextHeight = 15
   object Panel1: TPanel
     Left = 8
@@ -94,7 +96,7 @@ object FormAbout: TFormAbout
       Top = 29
       Width = 90
       Height = 15
-      Caption = #29256#26412#65306'1.1.12.271'
+      Caption = #29256#26412#65306'1.1.13.296'
       IsControl = True
     end
     object Label3: TLabel

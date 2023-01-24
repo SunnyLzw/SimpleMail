@@ -29,8 +29,8 @@ package smMain;
 {$IMPLICITBUILD ON}
 
 requires
-  Plugin,
   smType,
+  smPlugin,
   rtl,
   vclimg;
 

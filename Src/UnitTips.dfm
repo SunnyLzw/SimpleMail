@@ -11,7 +11,9 @@ object FormTips: TFormTips
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
+  OldCreateOrder = True
   OnShow = FormShow
+  PixelsPerInch = 96
   TextHeight = 14
   object ListBox1: TListBox
     Left = 0
