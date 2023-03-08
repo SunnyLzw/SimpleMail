@@ -1,0 +1,538 @@
+object SettingsForm: TSettingsForm
+  Left = 0
+  Top = 0
+  ActiveControl = TreeView1
+  BorderIcons = [biSystemMenu]
+  BorderStyle = Single
+  Caption = #35774#32622
+  ClientHeight = 250
+  ClientWidth = 350
+  Padding.Left = 10.000000000000000000
+  Padding.Top = 5.000000000000000000
+  Padding.Right = 10.000000000000000000
+  Padding.Bottom = 10.000000000000000000
+  Position = MainFormCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object OpenDialog1: TOpenDialog
+    Filter = 'Smtp'#37197#32622#25991#20214'(*.sms)|*.sms|Smtp'#21152#23494#37197#32622#25991#20214'(*.smss)|*.smss'
+    Title = #21152#36733'Smtp'#37197#32622#25991#20214
+    Left = 50
+    Top = 68
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.sms'
+    Filter = 'Smtp'#37197#32622#25991#20214'(*.sms)|*.sms|Smtp'#21152#23494#37197#32622#25991#20214'(*.smss)|*.smss'
+    Title = #20445#23384'Smtp'#37197#32622#25991#20214
+    Left = 90
+    Top = 132
+  end
+  object MainLayout: TLayout
+    Align = Client
+    Size.Width = 330.000000000000000000
+    Size.Height = 235.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    object MainRectangle: TRectangle
+      Align = Client
+      Fill.Color = claWhite
+      Size.Width = 330.000000000000000000
+      Size.Height = 235.000000000000000000
+      Size.PlatformDefault = False
+      object TabControl1: TTabControl
+        Align = Client
+        Size.Width = 230.000000000000000000
+        Size.Height = 235.000000000000000000
+        Size.PlatformDefault = False
+        TabIndex = 1
+        TabOrder = 0
+        TabPosition = PlatformDefault
+        Sizes = (
+          230s
+          209s
+          230s
+          209s
+          230s
+          209s
+          230s
+          209s)
+        object TabItem1: TTabItem
+          CustomIcon = <
+            item
+            end>
+          IsSelected = False
+          Size.Width = 56.000000000000000000
+          Size.Height = 26.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = ''
+          TabOrder = 0
+          Text = #26381#21153#22120
+          ExplicitSize.cx = 56.000000000000000000
+          ExplicitSize.cy = 26.000000000000000000
+          object TabControl2: TTabControl
+            Align = Client
+            Size.Width = 230.000000000000000000
+            Size.Height = 209.000000000000000000
+            Size.PlatformDefault = False
+            TabIndex = 0
+            TabOrder = 0
+            TabPosition = PlatformDefault
+            Sizes = (
+              230s
+              183s)
+            object TabItem5: TTabItem
+              CustomIcon = <
+                item
+                end>
+              IsSelected = True
+              Size.Width = 51.000000000000000000
+              Size.Height = 26.000000000000000000
+              Size.PlatformDefault = False
+              StyleLookup = ''
+              TabOrder = 0
+              Text = 'Smtp'
+              ExplicitSize.cx = 51.000000000000000000
+              ExplicitSize.cy = 26.000000000000000000
+              object Label1: TLabel
+                Position.X = 18.000000000000000000
+                Position.Y = 16.000000000000000000
+                Size.Width = 50.000000000000000000
+                Size.Height = 17.000000000000000000
+                Size.PlatformDefault = False
+                Text = #36134#21495#65306
+                TabOrder = 4
+              end
+              object Label2: TLabel
+                Position.X = 18.000000000000000000
+                Position.Y = 44.000000000000000000
+                Size.Width = 50.000000000000000000
+                Size.Height = 17.000000000000000000
+                Size.PlatformDefault = False
+                Text = #23494#30721#65306
+                TabOrder = 3
+              end
+              object Label3: TLabel
+                Position.X = 8.000000000000000000
+                Position.Y = 72.000000000000000000
+                Size.Width = 50.000000000000000000
+                Size.Height = 17.000000000000000000
+                Size.PlatformDefault = False
+                Text = #26381#21153#22120#65306
+                TabOrder = 2
+              end
+              object Label4: TLabel
+                Position.X = 20.000000000000000000
+                Position.Y = 100.000000000000000000
+                Size.Width = 44.000000000000000000
+                Size.Height = 17.000000000000000000
+                Size.PlatformDefault = False
+                Text = #31471#21475#65306
+                TabOrder = 1
+              end
+              object Label5: TLabel
+                Position.X = 8.000000000000000000
+                Position.Y = 128.000000000000000000
+                Size.Width = 50.000000000000000000
+                Size.Height = 17.000000000000000000
+                Size.PlatformDefault = False
+                Text = #26174#31034#21517#65306
+                TabOrder = 0
+              end
+              object UsernameEdit: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                TabOrder = 9
+                Position.X = 57.000000000000000000
+                Position.Y = 14.000000000000000000
+                Size.Width = 160.000000000000000000
+                Size.Height = 22.000000000000000000
+                Size.PlatformDefault = False
+                OnChange = ModifySmtpData
+              end
+              object PasswordEdit: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                TabOrder = 8
+                Password = True
+                Position.X = 57.000000000000000000
+                Position.Y = 42.000000000000000000
+                Size.Width = 160.000000000000000000
+                Size.Height = 22.000000000000000000
+                Size.PlatformDefault = False
+                OnChange = ModifySmtpData
+              end
+              object HostEdit: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                TabOrder = 7
+                KeyboardType = EmailAddress
+                Position.X = 57.000000000000000000
+                Position.Y = 70.000000000000000000
+                Size.Width = 160.000000000000000000
+                Size.Height = 22.000000000000000000
+                Size.PlatformDefault = False
+                OnChange = ModifySmtpData
+              end
+              object PortEdit: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                TabOrder = 6
+                Position.X = 57.000000000000000000
+                Position.Y = 98.000000000000000000
+                Size.Width = 160.000000000000000000
+                Size.Height = 22.000000000000000000
+                Size.PlatformDefault = False
+                OnChange = ModifySmtpData
+                OnKeyDown = NumberEditKeyDown
+              end
+              object DisplayNameEdit: TEdit
+                Touch.InteractiveGestures = [LongTap, DoubleTap]
+                TabOrder = 5
+                Position.X = 57.000000000000000000
+                Position.Y = 126.000000000000000000
+                Size.Width = 160.000000000000000000
+                Size.Height = 22.000000000000000000
+                Size.PlatformDefault = False
+                OnChange = ModifySmtpData
+              end
+              object GroupBox1: TGroupBox
+                Position.X = 8.000000000000000000
+                Position.Y = 153.000000000000000000
+                Size.Width = 125.000000000000000000
+                Size.Height = 48.000000000000000000
+                Size.PlatformDefault = False
+                Text = #20351#29992'SSL'#21152#23494#39564#35777
+                TabOrder = 10
+                object UseSSLRadioButton: TRadioButton
+                  Position.X = 8.000000000000000000
+                  Position.Y = 21.000000000000000000
+                  Size.Width = 40.000000000000000000
+                  Size.Height = 19.000000000000000000
+                  Size.PlatformDefault = False
+                  TabOrder = 38
+                  Text = #26159
+                  OnChange = ModifySmtpData
+                end
+                object NotUseSSLRadioButton: TRadioButton
+                  Position.X = 56.000000000000000000
+                  Position.Y = 21.000000000000000000
+                  Size.Width = 40.000000000000000000
+                  Size.Height = 19.000000000000000000
+                  Size.PlatformDefault = False
+                  TabOrder = 37
+                  Text = #21542
+                  OnChange = ModifySmtpData
+                end
+              end
+              object UseStartTLSCheckBox: TCheckBox
+                Position.X = 8.000000000000000000
+                Position.Y = 201.000000000000000000
+                Size.Width = 205.000000000000000000
+                Size.Height = 24.000000000000000000
+                Size.PlatformDefault = False
+                TabOrder = 11
+                Text = #20248#20808#20351#29992'StartTLS'#65288#21462#20915#20110#26381#21153#22120#65289
+                OnChange = ModifySmtpData
+              end
+              object LoadSpeedButton: TSpeedButton
+                Hint = #21152#36733'Smtp'#37197#32622#25991#20214
+                Images = ImageList1
+                ImageIndex = 0
+                Position.X = 141.000000000000000000
+                Position.Y = 156.000000000000000000
+                Size.Width = 70.000000000000000000
+                Size.Height = 22.000000000000000000
+                Size.PlatformDefault = False
+                ParentShowHint = False
+                ShowHint = True
+                Text = #21152#36733
+                OnClick = LoadSpeedButtonClick
+              end
+              object SaveSpeedButton: TSpeedButton
+                Hint = #20445#23384'Smtp'#37197#32622#25991#20214
+                Images = ImageList1
+                ImageIndex = 1
+                Position.X = 141.000000000000000000
+                Position.Y = 178.000000000000000000
+                Size.Width = 70.000000000000000000
+                Size.Height = 23.000000000000000000
+                Size.PlatformDefault = False
+                ParentShowHint = False
+                ShowHint = True
+                Text = #20445#23384
+                OnClick = SaveSpeedButtonClick
+              end
+            end
+          end
+        end
+        object TabItem2: TTabItem
+          CustomIcon = <
+            item
+            end>
+          IsSelected = True
+          Size.Width = 44.000000000000000000
+          Size.Height = 26.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = ''
+          TabOrder = 0
+          Text = #21457#36865
+          ExplicitSize.cx = 44.000000000000000000
+          ExplicitSize.cy = 26.000000000000000000
+          object RepeatSendCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 16.000000000000000000
+            Size.Width = 81.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = #37325#22797#21457#36865
+            OnChange = ModifySettingsData
+            object StopNumberEdit: TEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              TabOrder = 4
+              Position.X = 49.000000000000000000
+              Position.Y = 50.000000000000000000
+              Size.Width = 121.000000000000000000
+              Size.Height = 22.000000000000000000
+              Size.PlatformDefault = False
+              OnChange = ModifySettingsData
+              OnKeyDown = NumberEditKeyDown
+              object SpinEditButton1: TSpinEditButton
+                AutoTranslate = False
+                CanFocus = False
+                Cursor = crArrow
+                Size.Width = 20.000000000000000000
+                Size.Height = 18.000000000000000000
+                Size.PlatformDefault = False
+                TabOrder = 0
+                OnDownClick = SpinEditButtonDownClick
+                OnUpClick = SpinEditButtonUpClick
+              end
+            end
+          end
+          object AutoStopCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 43.000000000000000000
+            Size.Width = 161.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = #21040#36798#25351#23450#25968#37327#21518#20572#27490#21457#36865
+            OnChange = ModifySettingsData
+          end
+          object UseIntervalCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 96.000000000000000000
+            Size.Width = 81.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = #21457#36865#38388#38548
+            OnChange = ModifySettingsData
+            object IntervalTimeEdit: TEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              TabOrder = 3
+              Position.X = 49.000000000000000000
+              Position.Y = 27.000000000000000000
+              Size.Width = 120.000000000000000000
+              Size.Height = 22.000000000000000000
+              Size.PlatformDefault = False
+              OnChange = ModifySettingsData
+              OnKeyDown = NumberEditKeyDown
+              object SpinEditButton2: TSpinEditButton
+                AutoTranslate = False
+                CanFocus = False
+                Cursor = crArrow
+                Size.Width = 20.000000000000000000
+                Size.Height = 18.000000000000000000
+                Size.PlatformDefault = False
+                TabOrder = 0
+                OnDownClick = SpinEditButtonDownClick
+                OnUpClick = SpinEditButtonUpClick
+              end
+            end
+          end
+        end
+        object TabItem3: TTabItem
+          CustomIcon = <
+            item
+            end>
+          IsSelected = False
+          Size.Width = 44.000000000000000000
+          Size.Height = 26.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = ''
+          TabOrder = 0
+          Text = #23548#20837
+          ExplicitSize.cx = 44.000000000000000000
+          ExplicitSize.cy = 26.000000000000000000
+          object AutoPostfixCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 16.000000000000000000
+            Size.Width = 105.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = #33258#21160#34917#20840#21518#32512
+            OnChange = ModifySettingsData
+            object DefaultPostfixEdit: TEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              TabOrder = 4
+              Position.X = 41.000000000000000000
+              Position.Y = 27.000000000000000000
+              Size.Width = 120.000000000000000000
+              Size.Height = 22.000000000000000000
+              Size.PlatformDefault = False
+              OnChange = ModifySettingsData
+            end
+          end
+          object AutoWrapCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 73.000000000000000000
+            Size.Width = 137.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = #22320#22336#34917#20840#21518#33258#21160#25442#34892
+            OnChange = ModifySettingsData
+          end
+          object FilterRepeatCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 100.000000000000000000
+            TabOrder = 2
+            Text = #36807#28388#37325#22797#37038#31665#22320#22336
+            OnChange = ModifySettingsData
+          end
+          object CheckImportedListCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 127.000000000000000000
+            Size.Width = 145.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = #21516#26102#26816#26597#24050#23548#20837#30340#21015#34920
+            OnChange = ModifySettingsData
+          end
+        end
+        object TabItem4: TTabItem
+          CustomIcon = <
+            item
+            end>
+          IsSelected = False
+          Size.Width = 44.000000000000000000
+          Size.Height = 26.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = ''
+          TabOrder = 0
+          Text = #26174#31034
+          ExplicitSize.cx = 44.000000000000000000
+          ExplicitSize.cy = 26.000000000000000000
+          object UseCustomThemeCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 16.000000000000000000
+            Size.Width = 137.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = #20351#29992#33258#23450#20041#31383#21475#26679#24335
+            OnChange = ModifySettingsData
+            object ComboBox1: TComboBox
+              Position.X = 45.000000000000000000
+              Position.Y = 27.000000000000000000
+              Size.Width = 156.000000000000000000
+              Size.Height = 22.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 2
+              OnChange = ModifySettingsData
+            end
+          end
+          object UseColorCheckBox: TCheckBox
+            Position.X = 16.000000000000000000
+            Position.Y = 73.000000000000000000
+            Size.Width = 153.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = #26085#24535#20351#29992#19981#21516#39068#33394#26631#35760
+            OnChange = ModifySettingsData
+          end
+        end
+      end
+      object TreeView1: TTreeView
+        Align = Left
+        Size.Width = 100.000000000000000000
+        Size.Height = 235.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        OnChange = TreeView1Change
+        Viewport.Width = 96.000000000000000000
+        Viewport.Height = 231.000000000000000000
+      end
+    end
+  end
+  object ImageList1: TImageList
+    Source = <
+      item
+        MultiResBitmap = <
+          item
+            Width = 16
+            Height = 16
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+              61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              024449444154384FA5534D68135110FE76939A5A7BE8554A1104413C2A8A97AA
+              55103C7B1141AF7A95DE3D88174F2D5290F6EA45AD78A8D0AB5AF5A0D2F8432A
+              969234310949D86437C9E667F37E9DD9A41E44E8A1C37EFBBD37FB66DE37F3DE
+              E2A0E610DC11B331DB110C3BF633677379EE4DC2712EC5216496C2C248DCBC70
+              EFC3739AEE9F24FD64CE1AF57B84821561C6A657AED51FDE3E314D9F0FFD0749
+              C29E62385F1E5FB467EE2C01A248BB6BFAA2A1D438BE3F5B84EC87B1066B491E
+              3D8620A57E7FF9FEA72B142B3941522B5EA1011DC1318AC60A09D3C5E95BF370
+              5247798F615D94C9D2BA8D477767699220C4095C2D289813A80856B4A1FB0D98
+              5E0DA691862AAF41155E42E65721775F40EDAEA2E575386E9230414839EF1E9C
+              B7B3F30B30CD6FA86D6DC22FD7E20DAD3130AC99E45B624373E67AC163575C96
+              D4D24B4A52D0F7AB88CA3904D52E4EDD5884E3D0C98E6483FA62A92C50795613
+              0C2937027E7E1B6F97170A492EA155CAC3FFB583C99973B05115DD9DD7B49003
+              86FD61353C87E6B126351AF91F25041DB1EECA81463D9F45B31A606AE62406B5
+              2DA8D02704901D1FB24DE079CC01443C0E50CDD59029B65FB962A050CF66E124
+              27313E9144BF98A645144CE044CC9C40749A94907CC441C583DFE8FC5CFAE8E5
+              DC7E57A059A9626AFA38A24A0691971BEECEE8B4A0BA4D0A6A13D3B847DC0BE1
+              95DBF043B54E4D92CECAF5639F8FA4C6CEBA2E9FF7B0BB7B4C14F7911DECE617
+              1F8C10A6B4510AAF3EFDEA6FF3953C4C1823F04FF5AFFDBDB223E3347C812202
+              5D9E031BF00747E9925BDDA7254E0000000049454E44AE426082}
+            FileName = 'C:\Users\Administrator\Desktop\Test\Res\Load.png'
+          end>
+        Name = 'Load'
+      end
+      item
+        MultiResBitmap = <
+          item
+            Width = 16
+            Height = 16
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+              61000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              007949444154384F63A014308288CEC8D5FFC13C1241F9F2504616281B0CCA96
+              854059F84157D41A288B8101C500183874E81094850AECECECA02C04C06A0036
+              85B8C0C0BB80094A930D288E468A5D801106A504D24237521A00019C2E002944
+              578C0D50EC05AAC5420390AA07B149008DC05800E9A3043030000061051DBCE9
+              79173E0000000049454E44AE426082}
+            FileName = 'C:\Users\Administrator\Desktop\Test\Res\Save.png'
+          end>
+        Name = 'Save'
+      end>
+    Destination = <
+      item
+        Layers = <
+          item
+            Name = 'Load'
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'Save'
+          end>
+      end>
+    Left = 40
+    Top = 144
+  end
+end

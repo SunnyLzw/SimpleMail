@@ -1,30 +1,15 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{1355E7D3-22DA-4961-B4F0-7AFEB80DD934}</ProjectGuid>
+        <ProjectGuid>{484C1353-6DAD-4FDC-A030-E3A6436836FF}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="smType.dproj">
+        <Projects Include="SimpleMail\smPlugins.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="smPlugin.dproj">
+        <Projects Include="SimpleMail\smTypes.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="smAbout.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="smImport.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="smTips.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="smSettings.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="smMain.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="SimpleMail.dproj">
+        <Projects Include="SimpleMail\SimpleMail.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -35,86 +20,41 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="smType">
-        <MSBuild Projects="smType.dproj"/>
+    <Target Name="smPlugins">
+        <MSBuild Projects="SimpleMail\smPlugins.dproj"/>
     </Target>
-    <Target Name="smType:Clean">
-        <MSBuild Projects="smType.dproj" Targets="Clean"/>
+    <Target Name="smPlugins:Clean">
+        <MSBuild Projects="SimpleMail\smPlugins.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="smType:Make">
-        <MSBuild Projects="smType.dproj" Targets="Make"/>
+    <Target Name="smPlugins:Make">
+        <MSBuild Projects="SimpleMail\smPlugins.dproj" Targets="Make"/>
     </Target>
-    <Target Name="smPlugin">
-        <MSBuild Projects="smPlugin.dproj"/>
+    <Target Name="smTypes">
+        <MSBuild Projects="SimpleMail\smTypes.dproj"/>
     </Target>
-    <Target Name="smPlugin:Clean">
-        <MSBuild Projects="smPlugin.dproj" Targets="Clean"/>
+    <Target Name="smTypes:Clean">
+        <MSBuild Projects="SimpleMail\smTypes.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="smPlugin:Make">
-        <MSBuild Projects="smPlugin.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="smAbout">
-        <MSBuild Projects="smAbout.dproj"/>
-    </Target>
-    <Target Name="smAbout:Clean">
-        <MSBuild Projects="smAbout.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="smAbout:Make">
-        <MSBuild Projects="smAbout.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="smImport">
-        <MSBuild Projects="smImport.dproj"/>
-    </Target>
-    <Target Name="smImport:Clean">
-        <MSBuild Projects="smImport.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="smImport:Make">
-        <MSBuild Projects="smImport.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="smTips">
-        <MSBuild Projects="smTips.dproj"/>
-    </Target>
-    <Target Name="smTips:Clean">
-        <MSBuild Projects="smTips.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="smTips:Make">
-        <MSBuild Projects="smTips.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="smSettings">
-        <MSBuild Projects="smSettings.dproj"/>
-    </Target>
-    <Target Name="smSettings:Clean">
-        <MSBuild Projects="smSettings.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="smSettings:Make">
-        <MSBuild Projects="smSettings.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="smMain">
-        <MSBuild Projects="smMain.dproj"/>
-    </Target>
-    <Target Name="smMain:Clean">
-        <MSBuild Projects="smMain.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="smMain:Make">
-        <MSBuild Projects="smMain.dproj" Targets="Make"/>
+    <Target Name="smTypes:Make">
+        <MSBuild Projects="SimpleMail\smTypes.dproj" Targets="Make"/>
     </Target>
     <Target Name="SimpleMail">
-        <MSBuild Projects="SimpleMail.dproj"/>
+        <MSBuild Projects="SimpleMail\SimpleMail.dproj"/>
     </Target>
     <Target Name="SimpleMail:Clean">
-        <MSBuild Projects="SimpleMail.dproj" Targets="Clean"/>
+        <MSBuild Projects="SimpleMail\SimpleMail.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SimpleMail:Make">
-        <MSBuild Projects="SimpleMail.dproj" Targets="Make"/>
+        <MSBuild Projects="SimpleMail\SimpleMail.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="smType;smPlugin;smAbout;smImport;smTips;smSettings;smMain;SimpleMail"/>
+        <CallTarget Targets="smPlugins;smTypes;SimpleMail"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="smType:Clean;smPlugin:Clean;smAbout:Clean;smImport:Clean;smTips:Clean;smSettings:Clean;smMain:Clean;SimpleMail:Clean"/>
+        <CallTarget Targets="smPlugins:Clean;smTypes:Clean;SimpleMail:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="smType:Make;smPlugin:Make;smAbout:Make;smImport:Make;smTips:Make;smSettings:Make;smMain:Make;SimpleMail:Make"/>
+        <CallTarget Targets="smPlugins:Make;smTypes:Make;SimpleMail:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -1,0 +1,866 @@
+object MainForm: TMainForm
+  Left = 0
+  Top = 0
+  ActiveControl = ImportMailAddressButton
+  Caption = 'SimpleMail'
+  ClientHeight = 600
+  ClientWidth = 900
+  Position = DesktopCenter
+  Constraints.MinHeight = 600.000000000000000000
+  Constraints.MinWidth = 900.000000000000000000
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object DisplayPopupMenu: TPopupMenu
+    OnPopup = DisplayPopupMenuPopup
+    Left = 512
+    Top = 216
+    object DeleteSelectMenuItem: TMenuItem
+      Text = #21024#38500#25152#36873'(&D)'
+    end
+    object ClearMenuItem: TMenuItem
+      Text = #28165#31354#21015#34920'(&C)'
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = #25991#26412#25991#26723'(*.txt)|*.txt|'#20840#37096#25991#20214'(*.*)|*.*'
+    InitialDir = '.'
+    Title = #23548#20837#38468#20214
+    Left = 328
+    Top = 346
+  end
+  object OpenDialog2: TOpenDialog
+    Filter = #20840#37096#25991#20214'(*.*)|*.*'
+    InitialDir = '.'
+    Title = #23548#20837#38468#20214
+    Left = 400
+    Top = 378
+  end
+  object MainMenuBar: TMenuBar
+    Size.Width = 900.000000000000000000
+    Size.Height = 24.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object FunctionMenuItem: TMenuItem
+      Text = #21151#33021'(&F)'
+      object ImportMailAddressMenuItem: TMenuItem
+        Action = ImportMailAddressAction
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+      object ImportMailAddressFromTextMenuItem: TMenuItem
+        Action = ImportMailAddressFromTextAction
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+    end
+    object ToolsMenuItem: TMenuItem
+      Text = #24037#20855'(&T)'
+      object SettingsMenuItem: TMenuItem
+        Action = SettingsAction
+        Enabled = True
+        Locked = True
+        ImageIndex = -1
+      end
+    end
+    object HelpMenuItem: TMenuItem
+      Text = #24110#21161'(&H)'
+      object AboutMenuItem: TMenuItem
+        Action = AboutAction
+        Enabled = True
+        Locked = True
+        Text = #20851#20110'(&A)'
+        ImageIndex = -1
+      end
+    end
+  end
+  object MainLayout: TLayout
+    Align = Client
+    Padding.Left = 10.000000000000000000
+    Padding.Top = 5.000000000000000000
+    Padding.Right = 10.000000000000000000
+    Padding.Bottom = 10.000000000000000000
+    Size.Width = 900.000000000000000000
+    Size.Height = 554.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object TopLayout: TLayout
+      Align = Top
+      Position.X = 10.000000000000000000
+      Position.Y = 5.000000000000000000
+      Size.Width = 880.000000000000000000
+      Size.Height = 280.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object MailAddressLayout: TLayout
+        Align = Left
+        Size.Width = 180.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object MailAddressListBox: TListBox
+          Align = Client
+          PopupMenu = DisplayPopupMenu
+          Size.Width = 180.000000000000000000
+          Size.Height = 280.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          DisableFocusEffect = True
+          ItemHeight = 20.000000000000000000
+          DefaultItemStyles.ItemStyle = ''
+          DefaultItemStyles.GroupHeaderStyle = ''
+          DefaultItemStyles.GroupFooterStyle = ''
+          Viewport.Width = 176.000000000000000000
+          Viewport.Height = 276.000000000000000000
+        end
+      end
+      object Splitter2: TSplitter
+        StyleName = 'SplitterStyle'
+        Align = Left
+        Cursor = crHSplit
+        MinSize = 100.000000000000000000
+        Position.X = 180.000000000000000000
+        Size.Width = 8.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        OnPainting = SplitterPainting
+      end
+      object SendLogRectangle: TRectangle
+        Align = Client
+        Fill.Kind = None
+        Padding.Left = 1.000000000000000000
+        Padding.Top = 1.000000000000000000
+        Padding.Right = 1.000000000000000000
+        Padding.Bottom = 1.000000000000000000
+        Size.Width = 692.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Thickness = 0.500000000000000000
+        OnResize = RectangleResize
+        object Header1: THeader
+          Sides = [Top, Left, Bottom, Right]
+          Align = Top
+          HitTest = False
+          Position.X = 1.000000000000000000
+          Position.Y = 1.000000000000000000
+          Size.Width = 690.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'listboxheaderlabel'
+          TabOrder = 0
+          OnResize = HeaderResize
+          OnRealignItem = HeaderRealignItem
+          OnResizeItem = HeaderResizeItem
+          object HeaderItem1: THeaderItem
+            Enabled = False
+            Size.Width = 30.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            StyleLookup = 'HeaderItem1Style1'
+            TabOrder = 2
+            TextSettings.HorzAlign = Leading
+            OnDragDrop = HeaderItemDragDrop
+            OnResize = HeaderItemResize
+          end
+          object HeaderItem2: THeaderItem
+            Position.X = 30.000000000000000000
+            Size.Width = 130.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = #26102#38388
+            TextSettings.HorzAlign = Leading
+            OnDragDrop = HeaderItemDragDrop
+            OnResize = HeaderItemResize
+          end
+          object HeaderItem3: THeaderItem
+            Position.X = 160.000000000000000000
+            Size.Width = 130.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 4
+            Text = #22320#22336
+            TextSettings.HorzAlign = Leading
+            OnDragDrop = HeaderItemDragDrop
+            OnResize = HeaderItemResize
+          end
+          object HeaderItem4: THeaderItem
+            Position.X = 290.000000000000000000
+            Size.Width = 40.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 5
+            Text = #29366#24577
+            TextSettings.HorzAlign = Leading
+            OnDragDrop = HeaderItemDragDrop
+            OnResize = HeaderItemResize
+          end
+          object HeaderItem5: THeaderItem
+            Position.X = 330.000000000000000000
+            Size.Width = 340.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 6
+            Text = #35814#32454#20449#24687
+            TextSettings.HorzAlign = Leading
+            OnDragDrop = HeaderItemDragDrop
+            OnResize = HeaderItemResize
+          end
+        end
+        object SendLogListView: TListView
+          ItemAppearanceClassName = 'TDynamicAppearance'
+          ItemEditAppearanceClassName = 'TDynamicAppearance'
+          HeaderAppearanceClassName = 'TListHeaderObjects'
+          FooterAppearanceClassName = 'TListHeaderObjects'
+          Align = Client
+          PopupMenu = DisplayPopupMenu
+          Size.Width = 690.000000000000000000
+          Size.Height = 248.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          OnKeyDown = ListViewKeyDown
+          OnPaint = SendLogListViewPaint
+          ItemAppearance.ItemHeight = 25
+          ItemAppearance.ItemEditHeight = 25
+          ItemAppearanceObjects.ItemObjects.ObjectsCollection = <
+            item
+              AppearanceObjectName = 'Time'
+              AppearanceClassName = 'TTextObjectAppearance'
+              Appearance.TextAlign = Leading
+              Appearance.Width = 125.000000000000000000
+              Appearance.PlaceOffset.X = 24.500000000000000000
+            end
+            item
+              AppearanceObjectName = 'Address'
+              AppearanceClassName = 'TTextObjectAppearance'
+              Appearance.TextAlign = Leading
+              Appearance.Width = 125.000000000000000000
+              Appearance.PlaceOffset.X = 154.500000000000000000
+            end
+            item
+              AppearanceObjectName = 'State'
+              AppearanceClassName = 'TTextObjectAppearance'
+              Appearance.TextAlign = Leading
+              Appearance.Width = 35.000000000000000000
+              Appearance.PlaceOffset.X = 284.500000000000000000
+            end
+            item
+              AppearanceObjectName = 'Information'
+              AppearanceClassName = 'TTextObjectAppearance'
+              Appearance.TextAlign = Leading
+              Appearance.Width = 335.000000000000000000
+              Appearance.PlaceOffset.X = 324.500000000000000000
+            end
+            item
+              AppearanceObjectName = 'Image'
+              AppearanceClassName = 'TImageObjectAppearance'
+              Appearance.Width = 16.000000000000000000
+              Appearance.Height = 16.000000000000000000
+              Appearance.VertAlign = Center
+              Appearance.PlaceOffset.X = -4.500000000000000000
+            end>
+          ItemAppearanceObjects.ItemEditObjects.ObjectsCollection = <
+            item
+              AppearanceObjectName = 'Text1'
+              AppearanceClassName = 'TTextObjectAppearance'
+            end>
+          StyleLookup = 'SendLogListViewStyle1'
+          OnDeletingItem = SendLogListViewDeletingItem
+          object Line1: TLine
+            Anchors = [akLeft, akTop, akBottom]
+            LineType = Diagonal
+            Position.X = 29.500000000000000000
+            Size.Width = 0.699999988079071000
+            Size.Height = 250.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = claLightgray
+            Stroke.Thickness = 0.699999988079071000
+          end
+          object Line2: TLine
+            Anchors = [akLeft, akTop, akBottom]
+            LineType = Diagonal
+            Position.X = 159.500000000000000000
+            Size.Width = 0.699999988079071000
+            Size.Height = 250.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = claLightgray
+            Stroke.Thickness = 0.699999988079071000
+          end
+          object Line3: TLine
+            Anchors = [akLeft, akTop, akBottom]
+            LineType = Diagonal
+            Position.X = 289.500000000000000000
+            Size.Width = 0.699999988079071000
+            Size.Height = 250.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = claLightgray
+            Stroke.Thickness = 0.699999988079071000
+          end
+          object Line4: TLine
+            Anchors = [akLeft, akTop, akBottom]
+            LineType = Diagonal
+            Position.X = 329.500000000000000000
+            Size.Width = 0.699999988079071000
+            Size.Height = 250.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = claLightgray
+            Stroke.Thickness = 0.699999988079071000
+          end
+          object Line5: TLine
+            Anchors = [akLeft, akTop, akBottom]
+            LineType = Diagonal
+            Position.X = 669.500000000000000000
+            Size.Width = 0.699999988079071000
+            Size.Height = 250.000000000000000000
+            Size.PlatformDefault = False
+            Stroke.Color = claLightgray
+            Stroke.Thickness = 0.699999988079071000
+          end
+        end
+      end
+    end
+    object BottomLayout: TLayout
+      Align = Client
+      Size.Width = 880.000000000000000000
+      Size.Height = 251.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object Splitter3: TSplitter
+        StyleName = 'SplitterStyle'
+        Align = Right
+        Cursor = crHSplit
+        MinSize = 200.000000000000000000
+        Position.X = 550.000000000000000000
+        Size.Width = 8.000000000000000000
+        Size.Height = 251.000000000000000000
+        Size.PlatformDefault = False
+        OnPainting = SplitterPainting
+      end
+      object MessageRectangle: TRectangle
+        Align = Client
+        Fill.Kind = None
+        Size.Width = 550.000000000000000000
+        Size.Height = 251.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Thickness = 0.500000000000000000
+        object BodyMemo: TMemo
+          Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+          DataDetectorTypes = []
+          TextSettings.WordWrap = True
+          OnChange = ModifyMailData
+          Anchors = [akLeft, akTop, akRight, akBottom]
+          Position.X = 40.000000000000000000
+          Position.Y = 32.000000000000000000
+          Size.Width = 507.000000000000000000
+          Size.Height = 211.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          Viewport.Width = 503.000000000000000000
+          Viewport.Height = 207.000000000000000000
+        end
+        object IsHtmlCheckBox: TCheckBox
+          Anchors = [akTop, akRight]
+          Position.X = 447.000000000000000000
+          Position.Y = 6.000000000000000000
+          Size.Width = 102.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          Text = #26159#21542'Html'#26684#24335
+          OnChange = ModifyMailData
+        end
+        object Label1: TLabel
+          Position.X = 8.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 41.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = #20027#39064#65306
+          TabOrder = 2
+        end
+        object Label2: TLabel
+          Position.X = 8.000000000000000000
+          Position.Y = 32.000000000000000000
+          Size.Width = 41.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = #27491#25991#65306
+          TabOrder = 3
+        end
+        object SubjectEdit: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 4
+          Position.X = 38.947364807128910000
+          Position.Y = 4.398403644561768000
+          Size.Width = 403.947265625000000000
+          Size.Height = 23.091623306274410000
+          Size.PlatformDefault = False
+          OnChange = ModifyMailData
+        end
+      end
+      object AttachmemtRectangle: TRectangle
+        Align = Right
+        Fill.Kind = None
+        Position.X = 558.000000000000000000
+        Size.Width = 322.000000000000000000
+        Size.Height = 251.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Thickness = 0.500000000000000000
+        OnResize = RectangleResize
+        object ImportAttachmentButton: TButton
+          Action = ImportAttachmentAction
+          Anchors = [akLeft, akBottom]
+          Enabled = True
+          ImageIndex = -1
+          Position.X = 8.000000000000000000
+          Position.Y = 221.000000000000000000
+          TabOrder = 0
+        end
+        object ImportMailAddressButton: TButton
+          Action = ImportMailAddressAction
+          Anchors = [akRight, akBottom]
+          Enabled = True
+          ImageIndex = -1
+          Position.X = 146.000000000000000000
+          Position.Y = 221.000000000000000000
+          TabOrder = 1
+        end
+        object SendButton: TButton
+          Action = StartSendAction
+          Anchors = [akRight, akBottom]
+          Enabled = True
+          ImageIndex = -1
+          Position.X = 234.000000000000000000
+          Position.Y = 221.000000000000000000
+          TabOrder = 2
+        end
+        object AttachmentRectangle2: TRectangle
+          Align = Top
+          Anchors = [akLeft, akTop, akRight, akBottom]
+          Fill.Kind = None
+          Padding.Left = 1.000000000000000000
+          Padding.Top = 1.000000000000000000
+          Padding.Right = 1.000000000000000000
+          Padding.Bottom = 1.000000000000000000
+          Size.Width = 322.000000000000000000
+          Size.Height = 212.000000000000000000
+          Size.PlatformDefault = False
+          object AttachmentListView: TListView
+            ItemAppearanceClassName = 'TDynamicAppearance'
+            ItemEditAppearanceClassName = 'TDynamicAppearance'
+            HeaderAppearanceClassName = 'TListHeaderObjects'
+            FooterAppearanceClassName = 'TListHeaderObjects'
+            Align = Client
+            PopupMenu = DisplayPopupMenu
+            Size.Width = 320.000000000000000000
+            Size.Height = 180.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            OnKeyDown = ListViewKeyDown
+            ItemAppearance.ItemHeight = 25
+            ItemAppearance.ItemEditHeight = 25
+            ItemAppearanceObjects.ItemObjects.ObjectsCollection = <
+              item
+                AppearanceObjectName = 'Id'
+                AppearanceClassName = 'TTextObjectAppearance'
+                Appearance.TextAlign = Leading
+                Appearance.Width = 75.000000000000000000
+                Appearance.PlaceOffset.X = -5.500000000000000000
+              end
+              item
+                AppearanceObjectName = 'Path'
+                AppearanceClassName = 'TTextObjectAppearance'
+                Appearance.TextAlign = Leading
+                Appearance.Width = 215.000000000000000000
+                Appearance.PlaceOffset.X = 74.500000000000000000
+              end>
+            ItemAppearanceObjects.ItemEditObjects.ObjectsCollection = <
+              item
+                AppearanceObjectName = 'Text1'
+                AppearanceClassName = 'TTextObjectAppearance'
+              end>
+            object Line7: TLine
+              Anchors = [akLeft, akTop, akBottom]
+              LineType = Left
+              Position.X = 79.500000000000000000
+              Size.Width = 0.699999988079071000
+              Size.Height = 188.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Color = claLightgray
+              Stroke.Thickness = 0.699999988079071000
+            end
+            object Line6: TLine
+              Anchors = [akLeft, akTop, akBottom]
+              LineType = Left
+              Position.X = -0.500000000000000000
+              Size.Width = 0.699999988079071000
+              Size.Height = 188.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Color = claLightgray
+              Stroke.Thickness = 0.699999988079071000
+            end
+            object Line8: TLine
+              Anchors = [akLeft, akTop, akBottom]
+              LineType = Left
+              Position.X = 299.500000000000000000
+              Size.Width = 0.699999988079071000
+              Size.Height = 188.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Color = claLightgray
+              Stroke.Thickness = 0.699999988079071000
+            end
+          end
+          object Header2: THeader
+            Sides = [Top, Left, Bottom, Right]
+            Align = Top
+            Position.X = 1.000000000000000000
+            Position.Y = 1.000000000000000000
+            Size.Width = 320.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            OnDragDrop = HeaderItemDragDrop
+            OnResize = HeaderResize
+            OnRealignItem = HeaderRealignItem
+            OnResizeItem = HeaderResizeItem
+            object HeaderItem6: THeaderItem
+              Size.Width = 80.000000000000000000
+              Size.Height = 30.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 1
+              Text = #21517#31216
+              TextSettings.HorzAlign = Leading
+              OnResize = HeaderItemResize
+            end
+            object HeaderItem7: THeaderItem
+              Position.X = 80.000000000000000000
+              Size.Width = 220.000000000000000000
+              Size.Height = 30.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 2
+              Text = #36335#24452
+              TextSettings.HorzAlign = Leading
+              OnResize = HeaderItemResize
+            end
+          end
+        end
+      end
+    end
+    object Splitter1: TSplitter
+      StyleName = 'SplitterStyle'
+      Align = Top
+      Cursor = crVSplit
+      MinSize = 100.000000000000000000
+      Position.X = 10.000000000000000000
+      Position.Y = 285.000000000000000000
+      Size.Width = 880.000000000000000000
+      Size.Height = 8.000000000000000000
+      Size.PlatformDefault = False
+      OnPainting = SplitterPainting
+    end
+  end
+  object StateStatusBar: TStatusBar
+    Position.Y = 578.000000000000000000
+    ShowSizeGrip = True
+    Size.Width = 900.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 9
+    object StateFlowLayout: TFlowLayout
+      Align = Client
+      Padding.Left = 10.000000000000000000
+      Size.Width = 785.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Justify = Left
+      JustifyLastLine = Left
+      FlowDirection = LeftToRight
+      object Line10: TLine
+        LineType = Left
+        Position.X = 10.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+      object SendAllLabel: TLabel
+        Position.X = 15.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = #24050#21457#36865#37038#31665#65306'0'
+        TabOrder = 3
+      end
+      object Line11: TLine
+        LineType = Left
+        Position.X = 135.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+      object SendTodayLabel: TLabel
+        Position.X = 140.000000000000000000
+        Size.Width = 150.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = #20170#26085#24050#21457#36865#37038#31665#65306'0'
+        TabOrder = 1
+      end
+      object Line12: TLine
+        LineType = Left
+        Position.X = 290.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+      object CountLabel: TLabel
+        Position.X = 295.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = #24453#21457#36865#37038#31665#65306'0'
+        TabOrder = 0
+      end
+      object Line13: TLine
+        LineType = Left
+        Position.X = 415.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+    end
+    object StateLabel: TLabel
+      Align = Right
+      StyledSettings = [Family, Size, Style]
+      Position.X = 790.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.FontColor = claLightslategray
+      Text = #29366#24577#65306#31354#38386
+      TabOrder = 0
+    end
+    object Line9: TLine
+      Align = Right
+      LineType = Left
+      Position.X = 785.000000000000000000
+      Size.Width = 5.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claLightgray
+      Stroke.Thickness = 0.699999988079071000
+    end
+  end
+  object MainActionList: TActionList
+    Left = 344
+    Top = 280
+    object ImportMailAddressAction: TAction
+      Text = #23548#20837'(&I)'
+      OnExecute = ImportMailAddressActionExecute
+    end
+    object ImportMailAddressFromTextAction: TAction
+      Text = #20174#25991#26723#23548#20837'(&T)'
+      OnExecute = ImportMailAddressFromTextActionExecute
+    end
+    object ImportAttachmentAction: TAction
+      Text = #23548#20837#38468#20214'(&F)'
+      OnExecute = ImportAttachmentActionExecute
+    end
+    object SettingsAction: TAction
+      Text = #35774#32622'(&S)'
+      OnExecute = SettingsActionExecute
+    end
+    object AboutAction: TAction
+      Text = #24110#21161'(&A)'
+      OnExecute = AboutActionExecute
+    end
+    object StartSendAction: TAction
+      Text = #21457#36865'(&S)'
+      OnExecute = StartSendActionExecute
+    end
+    object StopSendAction: TAction
+      Text = #20572#27490'(&S)'
+      OnExecute = StopSendActionExecute
+    end
+  end
+  object DisplayActionList: TActionList
+    Left = 336
+    Top = 168
+    object DeleteSelectMailAddressAction: TAction
+      Text = #21024#38500#25152#36873'(&D)'
+      OnExecute = DeleteSelectMailAddressActionExecute
+    end
+    object ClearMailAddressAction: TAction
+      Text = #21024#38500#21015#34920'(&C)'
+      OnExecute = ClearMailAddressActionExecute
+    end
+    object DeleteSelectAttachmentAction: TAction
+      Text = #21024#38500#25152#36873'(&D)'
+      OnExecute = DeleteSelectAttachmentActionExecute
+    end
+    object ClearAttachmentAction: TAction
+      Text = #28165#31354#21015#34920'(&C)'
+      OnExecute = ClearAttachmentActionExecute
+    end
+    object DeleteSelectSendLogAction: TAction
+      Text = #21024#38500#25152#36873'(&D)'
+      OnExecute = DeleteSelectSendLogActionExecute
+    end
+    object ClearSendLogAction: TAction
+      Text = #28165#31354#21015#34920'(&C)'
+      OnExecute = ClearSendLogActionExecute
+    end
+  end
+  object ImageList: TImageList
+    Source = <
+      item
+        MultiResBitmap.Width = 64
+        MultiResBitmap = <
+          item
+            Width = 64
+            Height = 16
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000040000000100806000000A6E779
+              29000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              051D494441545847E5974F489C4714C0DF9B6F77E39FC6D4FF922856C554931C
+              941E5A09954829F45089E0C182C5B69078120F8162429BC626A16D9A9652F414
+              CDAD48E321289EDB063C988B908616114D8A5183694CB65169ECBADFBCBE373B
+              FBB97FBE355E3C94FE6099F7DE7CEF9BEFCDCC7B330BFF77D0B6DB0C55953AA0
+              7A88A01515D4020112C21C024DB88E3B081F2DACD827F784A99292D2EC60B007
+              105BF9E36A696D0D292F6F0E89260281C0E0B1859DC7CF3D77B734E4067A4043
+              EB96C65A1574D1019C037026026E74F0F137C792FC9326C019AE6A0750D7593C
+              10B3A4A037D708B3BAF5E97B37AC6547DCF1E26F0128E29C5C3D674D3B72E7D0
+              A176D0FA3A3A8EEFF844B4064A75372C2EFA8E7FA06FA65D81CBDFEFEFBF4991
+              B52C15E80E7F75D4F3F726C0063FCAA28A5932A209A8539FBAFFA3D57DD1370B
+              EA179E397745AE2C528DAAF5D16FA62303127C1871B4E005E33FE557E7037436
+              2C2D258D5FC0C1D3ED955178A3CCF327AD9B15E216214E5913C0ED150DAF9776
+              86BF3E62FC631320DB1ED52C4BFE2BCF704A4C22C29B46791E5977B373EAE0D4
+              EC43A3FBE08E154F28847745E619BBE5B43D6E311D3E986DEF38B3092BBF60DB
+              4ADB26E95180754E91BAD71617CDF8B9BDBCEDB3E5FB93579ED3A6C925882885
+              D3D664D884BFD773744EDD93ABF50FCD6C49CE73933178ADE1126FFB66698D21
+              3BB4DFA168AF917DD063852DF1E005964FE8B1A2F7AC9A86E47C62F0A4548BFC
+              44F6D12100C0E393377E288B73DE67DBCBCAA7062F6441CE7E17B5F137132005
+              4F5A3F2468EABEF799C888B4658C0C91F6F5A10BA0342ACE7D2627FA323F9727
+              6214F12A8D16BF64ECA970C1B39279B11B89E886070FFE88072EB2D8A4CF3E25
+              ABBBEDC305CF4A1EE12BF518FF59531204CAF8980930D5DE6256DBAE7462F06A
+              A8FA3C225E145940D487AD98043516BFEF00348A8C6F879FA9B627EB220701CA
+              F53EFA44E454A4DA5B515E5C15709C5FA6CBCA2A2570F9892C36E9B34F7100E0
+              8D2FD5DE8A1EF97D33FC4866D42332FEB182C1479D341AF42D09D804ADE92D6F
+              E5876AFA1383CF84BE519E1D45B86CD5345601CEE89B45691327479D1563202A
+              2714F28A9991D9665543A2830AB8BEABBC1B622900301F53D40975ADFA5391DD
+              EEFB3F4B8BD76A2E720E5F103919C7F824B16FF30CAF7485D5D228010C11D2F7
+              56F5D0B9B989EF32391F5FF9F84E48AC0102E7C2B68F4E9077892E211B332397
+              1C6905547889B7FB59919DE1EACB4AC179D391067A3E821E2F297D8ED8675503
+              8D1793FCAC6A504ABDA3C70B4F5AD5C0BB6BFB5DB606C4B77D3C1DD26A0080E7
+              E32895F42DBB213EA6990037E00EC8254764813BBFE46DFF134BBE39CB256DC3
+              0DAAA49524D0FD395C9DAD6A204DCD9C5D4D56F570A3F09DA48B5521180C0E98
+              4B8E606B8097F3A93AB309B0C115DE1B3FA0F5805C72AC6A482C7EA985F01F17
+              3654C031FE5E871AAAE9E0737E44C49825038BBC0EE5D8A54FCFFF602D7CEC15
+              1C59083BBFBE522027D436046E136FA908DFA5D38E220EB85FB5AD7E6E55B853
+              51D111261A79D14568925D8F1375352E2F7BE30BF9677FEF80A93F47122F42BE
+              D024111EEFFAEBCA51E3EF3D2CD75BB9E1C925C79A7C886EA4062FF091F2416A
+              F0028233E517BCC0C762B7150D72BD951B9EB9E4644056DE2F78C15C6FF98627
+              971C6B4A43563E317821BD7A0E571C7428D4CBE9D6BA7DD449C1C309B3ED3F9C
+              5B8ED9F686E90A199F7AE59CE76D7E583E500A9EFC19926DDFB8B4B4E3F8851F
+              CF1CE433A1970B4F6BECA8432E787A5E725EB6FDD32F5EDDD3EFFF8F01F02F47
+              B133A299067E380000000049454E44AE426082}
+            FileName = 'C:\Users\Administrator\Desktop\Test\Bin\Res\State.png'
+          end>
+        Name = 'SendState'
+      end
+      item
+        MultiResBitmap.Width = 64
+        MultiResBitmap = <
+          item
+            Width = 64
+            Height = 16
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000040000000100806000000A6E779
+              29000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              0048494441545847EDD0B10D0030080341C8B8611EE64D14E92720A57DCDD321
+              39BBFBC487DAC535F3F5FC493AB4A82C0F406579002ACB0350591E80CAF20054
+              9607A0B23C00151571016A65051ED51CC1BD0000000049454E44AE426082}
+            FileName = 'D:\Development\Projects\SimpleMail\Res\BackGround.png'
+          end>
+        Name = 'BackGround'
+      end>
+    Destination = <
+      item
+        Layers = <
+          item
+            Name = 'SendState'
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'SendState'
+            SourceRect.Left = 16.000000000000000000
+            SourceRect.Right = 32.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'SendState'
+            SourceRect.Left = 32.000000000000000000
+            SourceRect.Right = 48.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'SendState'
+            SourceRect.Left = 48.000000000000000000
+            SourceRect.Right = 64.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'BackGround'
+            SourceRect.Left = 16.000000000000000000
+            SourceRect.Right = 32.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'BackGround'
+            SourceRect.Left = 32.000000000000000000
+            SourceRect.Right = 48.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'BackGround'
+            SourceRect.Left = 48.000000000000000000
+            SourceRect.Right = 64.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'BackGround'
+          end>
+      end>
+    Left = 392
+    Top = 120
+  end
+end

@@ -1,0 +1,31 @@
+object TipsForm: TTipsForm
+  Left = 0
+  Top = 0
+  ActiveControl = ListBox1
+  BorderStyle = None
+  Caption = 'Form1'
+  ClientHeight = 150
+  ClientWidth = 100
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object ListBox1: TListBox
+    Align = Client
+    Size.Width = 100.000000000000000000
+    Size.Height = 150.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    OnMouseMove = ListBox1MouseMove
+    OnMouseUp = ListBox1MouseUp
+    DisableFocusEffect = True
+    ItemHeight = 16.000000000000000000
+    DefaultItemStyles.ItemStyle = ''
+    DefaultItemStyles.GroupHeaderStyle = ''
+    DefaultItemStyles.GroupFooterStyle = ''
+    OnKeyDown = ListBox1KeyDown
+    Viewport.Width = 96.000000000000000000
+    Viewport.Height = 146.000000000000000000
+  end
+end
