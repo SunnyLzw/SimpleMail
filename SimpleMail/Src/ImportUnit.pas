@@ -24,7 +24,7 @@ type
   public
     { Public declarations }
     function AutoPostfix(var AString: string): Boolean;
-    function AutoPostfixs(AString: string): TStrings;
+    function AutoPostfixs(const AString: string): TStrings;
     procedure AutoComplete;
     property MailAddresss: TStrings read FMailAddresss write FMailAddresss;
   end;
@@ -80,26 +80,31 @@ begin
   end;
 end;
 
-function TImportForm.AutoPostfixs(AString: string): TStrings;
+function TImportForm.AutoPostfixs(const AString: string): TStrings;
 var
-  LStrings: TStrings;
-  LString, LTempString: string;
+  LString: string;
 begin
-  LStrings := TStringList.Create;
-  LStrings.StrictDelimiter := True;
-  LStrings.Text := AString;
   Result := TStringList.Create;
-  for LString in LStrings do
-  begin
-    LTempString := LString;
-    if not AutoPostfix(LTempString) then
-      Continue;
-
-    if GBaseDataModule.SettingsData.FilterRepeat then
-      if Result.IndexOf(LTempString) <> -1 then
+  Result.BeginUpdate;
+  with TStringList.Create do
+  try
+    StrictDelimiter := True;
+    Text := AString;
+    for var i := 0 to Count - 1 do
+    begin
+      LString := Strings[i];
+      if not AutoPostfix(LString) then
         Continue;
 
-    Result.Append(LTempString);
+      if GBaseDataModule.SettingsData.FilterRepeat then
+        if Result.IndexOf(LString) <> -1 then
+          Continue;
+
+      Result.Append(LString);
+    end;
+  finally
+    Result.EndUpdate;
+    Free;
   end;
 end;
 

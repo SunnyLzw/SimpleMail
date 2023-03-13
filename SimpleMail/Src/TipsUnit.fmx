@@ -20,7 +20,6 @@ object TipsForm: TTipsForm
     OnMouseMove = ListBox1MouseMove
     OnMouseUp = ListBox1MouseUp
     DisableFocusEffect = True
-    ItemHeight = 16.000000000000000000
     DefaultItemStyles.ItemStyle = ''
     DefaultItemStyles.GroupHeaderStyle = ''
     DefaultItemStyles.GroupFooterStyle = ''

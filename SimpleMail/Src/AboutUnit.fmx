@@ -100,7 +100,7 @@ object AboutForm: TAboutForm
       object Label2: TLabel
         Position.X = 64.000000000000000000
         Position.Y = 41.000000000000000000
-        Text = #29256#26412#65306'2.2.14.378'
+        Text = #29256#26412#65306'2.2.15.389'
         TabOrder = 4
       end
       object Label3: TLabel

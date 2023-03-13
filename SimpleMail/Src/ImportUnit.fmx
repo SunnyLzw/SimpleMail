@@ -5,8 +5,8 @@ object ImportForm: TImportForm
   BorderIcons = [biSystemMenu]
   BorderStyle = Single
   Caption = #23548#20837
-  ClientHeight = 250
-  ClientWidth = 180
+  ClientHeight = 280
+  ClientWidth = 200
   Position = MainFormCenter
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -15,18 +15,18 @@ object ImportForm: TImportForm
   OnDestroy = FormDestroy
   DesignerMasterStyle = 0
   object MainLayout: TLayout
-    Align = Top
+    Align = Client
     Padding.Left = 10.000000000000000000
     Padding.Top = 5.000000000000000000
     Padding.Right = 10.000000000000000000
-    Padding.Bottom = 10.000000000000000000
-    Size.Width = 180.000000000000000000
-    Size.Height = 263.000000000000000000
+    Padding.Bottom = 40.000000000000000000
+    Size.Width = 200.000000000000000000
+    Size.Height = 280.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     object Button1: TButton
-      Position.X = 50.000000000000000000
-      Position.Y = 217.000000000000000000
+      Position.X = 60.000000000000000000
+      Position.Y = 247.000000000000000000
       TabOrder = 1
       Text = #23548#20837
       OnClick = Button1Click
@@ -34,17 +34,15 @@ object ImportForm: TImportForm
     object Memo1: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
       DataDetectorTypes = []
-      Align = Top
-      Position.X = 10.000000000000000000
-      Position.Y = 5.000000000000000000
-      Size.Width = 160.000000000000000000
-      Size.Height = 204.000000000000000000
+      Align = Client
+      Size.Width = 180.000000000000000000
+      Size.Height = 235.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
       OnKeyDown = Memo1KeyDown
       OnMouseDown = Memo1MouseDown
-      Viewport.Width = 156.000000000000000000
-      Viewport.Height = 200.000000000000000000
+      Viewport.Width = 176.000000000000000000
+      Viewport.Height = 231.000000000000000000
     end
   end
 end

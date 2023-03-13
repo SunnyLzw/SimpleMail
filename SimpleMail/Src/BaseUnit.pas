@@ -35,23 +35,23 @@ type
     FPostfixs: TStrings;
   public
     { Public declarations }
-    function QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer;
+    function QueryBeenSend(const AAddress: string; var ASendDataList: TSendDataList): Integer;
     procedure CreateDefaultTable;
     function TableIsExist: Boolean;
     procedure UpdateSettingsData;
     procedure UpdateSmtpData;
     procedure UpdateMailData;
-    procedure SetSettingsData(ASettingsData: TSettingsData);
-    procedure SetSmtpData(ASmtpData: TSmtpData);
-    procedure SetMailData(AMailData: TMailData);
+    procedure SetSettingsData(const ASettingsData: TSettingsData);
+    procedure SetSmtpData(const ASmtpData: TSmtpData);
+    procedure SetMailData(const AMailData: TMailData);
     function SendAll: Integer;
-    function SendAtDate(ADate: string = ''): Integer;
+    function SendAtDate(const ADate: string = ''): Integer;
     function EnumAll(var ASendDataList: TSendDataList): Integer;
-    function EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
+    function EnumAtDate(const ADate: string; var ASendDataList: TSendDataList): Integer;
     function EnumAllSuccessMailAddress: TStrings;
     function Login: Boolean;
-    procedure UpdateMessage(ASubject, ABody: string; AAttachmentDataList: TAttachmentDataList);
-    function Send(Address: string; DisplayName: string = ''): TSendData;
+    procedure UpdateMessage(const ASubject, ABody: string; const AAttachmentDataList: TAttachmentDataList);
+    function Send(const AAddress: string; const ADisplayName: string = ''): TSendData;
   public
     property SettingsData: TSettingsData read FSettingsData write SetSettingsData;
     property SmtpData: TSmtpData read FSmtpData write SetSmtpData;
@@ -151,9 +151,9 @@ begin
     while not Eof do
       with LSendData do
       begin
-        State := ssError;
+        State := TSendState.Error;
         if FieldByName('Success').AsWideString.ToBoolean then
-          State := ssSuccess;
+          State := TSendState.Success;
         DisplayName := FieldByName('DisplayName').AsWideString;
         Address := FieldByName('Address').AsWideString;
         ErrorCode := FieldByName('ErrorCode').AsInteger;
@@ -186,10 +186,11 @@ begin
   end;
 end;
 
-function TBaseDataModule.EnumAtDate(ADate: string; var ASendDataList: TSendDataList): Integer;
+function TBaseDataModule.EnumAtDate(const ADate: string; var ASendDataList: TSendDataList): Integer;
 var
   LFormatSettings: TFormatSettings;
   LSendData: TSendData;
+  LDate: string;
 begin
   LFormatSettings.LongDateFormat := 'yyyy-mm-dd';
   LFormatSettings.ShortDateFormat := 'yyyy-mm-dd';
@@ -202,21 +203,22 @@ begin
   if not TableIsExist then
     Exit;
 
-  if ADate.Trim = '' then
-    ADate := FormatDateTime('yyyy-mm-dd', Now);
+  LDate := ADate;
+  if LDate.Trim = '' then
+    LDate := FormatDateTime('yyyy-mm-dd', Now);
 
   with FDQuery1 do
   begin
-    Open('Select * From ' + FTableName + ' Where Time like ''' + ADate + '%''');
+    Open('Select * From ' + FTableName + ' Where Time like ''' + LDate + '%''');
     ASendDataList := TSendDataList.Create;
     First;
     Result := 0;
     while not Eof do
       with LSendData do
       begin
-        State := ssError;
+        State := TSendState.Error;
         if FieldByName('Success').AsWideString.ToBoolean then
-          State := ssSuccess;
+          State := TSendState.Success;
         DisplayName := FieldByName('DisplayName').AsWideString;
         Address := FieldByName('Address').AsWideString;
         ErrorCode := FieldByName('ErrorCode').AsInteger;
@@ -274,7 +276,7 @@ begin
   end;
 end;
 
-function TBaseDataModule.QueryBeenSend(AAddress: string; var ASendDataList: TSendDataList): Integer;
+function TBaseDataModule.QueryBeenSend(const AAddress: string; var ASendDataList: TSendDataList): Integer;
 var
   LFormatSettings: TFormatSettings;
   LSendData: TSendData;
@@ -299,9 +301,9 @@ begin
     while not Eof do
       with LSendData do
       begin
-        State := ssError;
+        State := TSendState.Error;
         if FieldByName('Success').AsWideString.ToBoolean then
-          State := ssSuccess;
+          State := TSendState.Success;
         DisplayName := FieldByName('DisplayName').AsWideString;
         Address := FieldByName('Address').AsWideString;
         ErrorCode := FieldByName('ErrorCode').AsInteger;
@@ -326,28 +328,30 @@ begin
   FDQuery1.Close;
 end;
 
-function TBaseDataModule.Send(Address, DisplayName: string): TSendData;
+function TBaseDataModule.Send(const AAddress, ADisplayName: string): TSendData;
 var
-  sdList: TSendDataList;
-  ret: Boolean;
+  LSendDatas: TSendDataList;
+  LResult: Boolean;
+  LDisplayName: string;
 begin
-  if DisplayName.Trim = '' then
-    DisplayName := Address.Remove(Address.IndexOf('@'));
+  LDisplayName := ADisplayName;
+  if LDisplayName.Trim = '' then
+    LDisplayName := AAddress.Remove(AAddress.IndexOf('@'));
 
-  Result.DisplayName := DisplayName;
-  Result.Address := Address;
+  Result.DisplayName := LDisplayName;
+  Result.Address := AAddress;
 
   with FDQuery1 do
   try
     FWaitCursor.StartWait;
-    if QueryBeenSend(Address, sdList) > 0 then
+    if QueryBeenSend(AAddress, LSendDatas) > 0 then
     begin
-      Result := sdList[sdList.Count - 1];
-      if Result.State = ssSuccess then
+      Result := LSendDatas[LSendDatas.Count - 1];
+      if Result.State = TSendState.Success then
       begin
         if not FSettingsData.RepeatSend then
         begin
-          Result.State := ssRepeat;
+          Result.State := TSendState.Repeated;
           Exit;
         end;
       end;
@@ -361,7 +365,7 @@ begin
 
     with Result do
     begin
-      ret := True;
+      LResult := True;
       try
         ErrorCode := 250;
         ErrorText := '';
@@ -371,19 +375,19 @@ begin
         begin
           ErrorCode := E.ErrorCode;
           ErrorText := E.Message;
-          ret := False;
+          LResult := False;
         end;
       end;
 
-      if ret then
-        State := ssSuccess
+      if LResult then
+        State := TSendState.Success
       else
-        State := ssError;
+        State := TSendState.Error;
       Time := Now;
       Sql.Text := 'Insert Into ' + FTableName + '(DisplayName,Address,Success,ErrorCode,ErrorText,Time) Values(:DisplayName,:Address,:Success,:ErrorCode,:ErrorText,:Time)';
       ParamByName('DisplayName').AsWideString := DisplayName;
       ParamByName('Address').AsWideString := Address;
-      ParamByName('Success').AsWideString := ret.ToString(TUseBoolStrs.True);
+      ParamByName('Success').AsWideString := LResult.ToString(TUseBoolStrs.True);
       ParamByName('ErrorCode').AsInteger := ErrorCode;
       ParamByName('ErrorText').AsWideString := ErrorText;
       ParamByName('Time').AsWideString := FormatDateTime('yyyy-mm-dd hh:nn:ss', Time);
@@ -395,21 +399,24 @@ begin
   end;
 end;
 
-function TBaseDataModule.SendAtDate(ADate: string): Integer;
+function TBaseDataModule.SendAtDate(const ADate: string): Integer;
+var
+  LDate: string;
 begin
   Result := 0;
   if not TableIsExist then
     Exit;
 
-  if ADate.Trim = '' then
-    ADate := FormatDateTime('yyyy-mm-dd', Now);
+  LDate := ADate;
+  if LDate.Trim = '' then
+    LDate := FormatDateTime('yyyy-mm-dd', Now);
 
-  FDQuery1.Open('Select * From ' + FTableName + ' Where Time like ''' + ADate + '%''');
+  FDQuery1.Open('Select * From ' + FTableName + ' Where Time like ''' + LDate + '%''');
   Result := FDQuery1.RecordCount;
   FDQuery1.Close;
 end;
 
-procedure TBaseDataModule.SetMailData(AMailData: TMailData);
+procedure TBaseDataModule.SetMailData(const AMailData: TMailData);
 begin
   FMailData := AMailData;
   with FMailData do
@@ -427,7 +434,7 @@ begin
   end;
 end;
 
-procedure TBaseDataModule.SetSettingsData(ASettingsData: TSettingsData);
+procedure TBaseDataModule.SetSettingsData(const ASettingsData: TSettingsData);
 begin
   FSettingsData := ASettingsData;
   with FSettingsData do
@@ -456,7 +463,7 @@ begin
   end;
 end;
 
-procedure TBaseDataModule.SetSmtpData(ASmtpData: TSmtpData);
+procedure TBaseDataModule.SetSmtpData(const ASmtpData: TSmtpData);
 var
   LStringStream: TStringStream;
 begin
@@ -490,7 +497,7 @@ begin
   FDQuery1.Close;
 end;
 
-procedure TBaseDataModule.UpdateMessage(ASubject, ABody: string; AAttachmentDataList: TAttachmentDataList);
+procedure TBaseDataModule.UpdateMessage(const ASubject, ABody: string; const AAttachmentDataList: TAttachmentDataList);
 var
   LAttachmentData: PAttachmentData;
   LMemoryStream: TMemoryStream;

@@ -6,7 +6,7 @@ uses
   FMX.Forms, FMX.Menus, System.Classes;
 
 type
-  TInheriteState = (IsDefault, IsIndex, IsName);
+  TInheriteState = (IsIndex, IsName, IsTools, IsPlugins);
 
   {$Align 4}
   TPluginData = record

@@ -4,7 +4,7 @@ interface
 
 uses
   Types, System.SysUtils, System.UITypes, System.Classes, FMX.Types,
-  FMX.Controls, FMX.Forms, FMX.ListBox, FMX.Layouts;
+  FMX.Controls, FMX.Forms, FMX.ListBox, FMX.Layouts, FMX.Dialogs;
 
 type
   TTipsForm = class(TForm)
@@ -18,8 +18,8 @@ type
     FAutoComplete: procedure of object;
   public
     { Public declarations }
-    procedure SetAutoComplete(AAutoComplete: TAutoComplete);
-    procedure SetPostfixs(APostfixs: TStrings);
+    procedure SetAutoComplete(const AAutoComplete: TAutoComplete);
+    procedure SetPostfixs(const APostfixs: TStrings);
     function GetPostfix: string;
   end;
 
@@ -81,19 +81,35 @@ begin
   end;
 end;
 
-procedure TTipsForm.SetAutoComplete(AAutoComplete: TAutoComplete);
+procedure TTipsForm.SetAutoComplete(const AAutoComplete: TAutoComplete);
 begin
   FAutoComplete := AAutoComplete;
 end;
 
-procedure TTipsForm.SetPostfixs(APostfixs: TStrings);
+procedure TTipsForm.SetPostfixs(const APostfixs: TStrings);
+var
+  LItem: TListBoxItem;
 begin
-  ListBox1.Items := APostfixs;
+  ListBox1.BeginUpdate;
+  for var i in APostfixs do
+  begin
+    LItem := TListBoxItem.Create(ListBox1);
+    with LItem do
+    begin
+      Parent := ListBox1;
+      StyledSettings := [TStyledSetting.Family, TStyledSetting.Size];
+      TextAlign := TTextAlign.Leading;
+      Text := i;
+    end;
+  end;
+  ListBox1.EndUpdate;
 
-  if ListBox1.Items.Count > 10 then
-    Height := Round(10 * ListBox1.ItemHeight + ListBox1.Margins.Top + ListBox1.Margins.Bottom)
+  if ListBox1.Items.Count = 0 then
+    Exit
+  else if ListBox1.Items.Count > 10 then
+    Height := Round(ListBox1.ListItems[0].Height * 10 + 4)
   else
-    Height := Round(ListBox1.Items.Count * ListBox1.ItemHeight + ListBox1.Margins.Top + ListBox1.Margins.Bottom);
+    Height := Round(ListBox1.ListItems[0].Height * ListBox1.Items.Count + 4);
 end;
 
 end.

@@ -98,6 +98,7 @@ type
     Line6: TLine;
     Line5: TLine;
     Line8: TLine;
+    PluginsMenuItem: TMenuItem;
     procedure ModifyMailData(Sender: TObject);
     procedure CloseButtonClick(Sender: TObject);
     procedure ClearMailAddressActionExecute(Sender: TObject);
@@ -143,14 +144,14 @@ type
     procedure UpdateAttachmentListViewItems;
   public
     { Public declarations }
-    procedure AddMailAddress(AMailaddress: string);
-    procedure AddMailAddresss(AMailaddresss: TStrings);
-    procedure AddAttachment(AAttachmentFileName: string);
-    procedure AddAttachments(AAttachmentFileNames: TStrings);
+    procedure AddMailAddress(const AMailaddress: string);
+    procedure AddMailAddresss(const AMailaddresss: TStrings);
+    procedure AddAttachment(const AAttachmentFileName: string);
+    procedure AddAttachments(const AAttachmentFileNames: TStrings);
     procedure UpdateAddress(SetSendButtonState: Boolean = True);
-    procedure PrintLog(ASendLog: TSendLog);
-    procedure PrintSendLog(ASendData: TSendData);
-    procedure PrintSystemLog(AState, AInformation: string);
+    procedure PrintLog(const ASendLog: TSendLog);
+    procedure PrintSendLog(const ASendData: TSendData);
+    procedure PrintSystemLog(const AState, AInformation: string);
     procedure ClearLog;
     procedure AutoStop;
     procedure SetStyle;
@@ -180,7 +181,7 @@ begin
   end;
 end;
 
-procedure TMainForm.AddAttachment(AAttachmentFileName: string);
+procedure TMainForm.AddAttachment(const AAttachmentFileName: string);
 var
   LId: string;
   LAttachmentData, LNewAttachmentData: PAttachmentData;
@@ -207,7 +208,7 @@ begin
   end;
 end;
 
-procedure TMainForm.AddAttachments(AAttachmentFileNames: TStrings);
+procedure TMainForm.AddAttachments(const AAttachmentFileNames: TStrings);
 var
   LString: string;
 begin
@@ -215,25 +216,36 @@ begin
     AddAttachment(LString.Trim);
 end;
 
-procedure TMainForm.AddMailAddress(AMailaddress: string);
+procedure TMainForm.AddMailAddress(const AMailaddress: string);
+var
+  LItem: TListBoxItem;
 begin
   if GBaseDataModule.SettingsData.FilterRepeat then
     if GBaseDataModule.SettingsData.CheckImportedList then
       if MailAddressListBox.Items.IndexOf(AMailaddress) <> -1 then
         Exit;
 
-  MailAddressListBox.Items.Add(AMailaddress);
+  LItem := TListBoxItem.Create(MailAddressListBox);
+  with LItem do
+  begin
+    Parent := MailAddressListBox;
+    StyledSettings := [TStyledSetting.Family, TStyledSetting.Size];
+    TextAlign := TTextAlign.Leading;
+    Text := AMailaddress;
+  end;
 end;
 
-procedure TMainForm.AddMailAddresss(AMailaddresss: TStrings);
+procedure TMainForm.AddMailAddresss(const AMailaddresss: TStrings);
 var
   LString: string;
 begin
+  MailAddressListBox.BeginUpdate;
   for LString in AMailaddresss do
   begin
     Application.ProcessMessages;
     AddMailAddress(LString.Trim);
   end;
+  MailAddressListBox.EndUpdate;
 end;
 
 procedure TMainForm.AutoStop;
@@ -393,39 +405,33 @@ procedure TMainForm.LoadPlugins;
 
   function CreateMenu(AInheriteState: TInheriteState; AMenuIndex: Integer; AMenuName: string; var AMenuItem: TMenuItem): Boolean;
   var
-    MenuItem: TMenuItem;
+    LMenuItem: TMenuItem;
   begin
-    MenuItem := nil;
+    LMenuItem := nil;
     case AInheriteState of
-      IsDefault:
-        begin
-          if not FindMenu('插件(&P)', MenuItem) then
-          begin
-            MenuItem := TMenuItem.Create(MainMenuBar);
-            MenuItem.Text := '插件(&P)';
-            MenuItem.Parent := MainMenuBar;
-            MenuItem.Index := 2;
-          end;
-        end;
       IsIndex:
         begin
-          MenuItem := TMenuItem.Create(MainMenuBar);
-          MenuItem.Text := AMenuName;
-          MenuItem.Parent := MainMenuBar;
+          LMenuItem := TMenuItem.Create(MainMenuBar);
+          LMenuItem.Text := AMenuName;
+          LMenuItem.Parent := MainMenuBar;
           if AMenuIndex < MainMenuBar.ItemsCount then
-            MenuItem.Index := AMenuIndex;
+            LMenuItem.Index := AMenuIndex;
         end;
       IsName:
         begin
-          if not FindMenu(AMenuName, MenuItem) then
+          if not FindMenu(AMenuName, LMenuItem) then
           begin
-            MenuItem := TMenuItem.Create(MainMenuBar);
-            MenuItem.Text := AMenuName;
-            MenuItem.Parent := MainMenuBar;
+            LMenuItem := TMenuItem.Create(MainMenuBar);
+            LMenuItem.Text := AMenuName;
+            LMenuItem.Parent := MainMenuBar;
           end;
         end;
+      IsTools:
+        FindMenu('工具(&T)', LMenuItem);
+      IsPlugins:
+        FindMenu('插件(&P)', LMenuItem);
     end;
-    AMenuItem := MenuItem;
+    AMenuItem := LMenuItem;
     Result := Assigned(AMenuItem);
   end;
 
@@ -496,9 +502,9 @@ end;
 
 procedure TMainForm.MailAddressListBoxKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
 begin
-  if Key = VK_DELETE then
+  if Assigned(MailAddressListBox.Selected) and (Key = VK_DELETE) then
   begin
-    //MailAddressListBox.DeleteSelected;
+    MailAddressListBox.Items.Delete(MailAddressListBox.ItemIndex);
     UpdateAddress;
   end;
 end;
@@ -537,7 +543,7 @@ begin
     LPluginObject.PluginMenuEvent.OnClick;
 end;
 
-procedure TMainForm.PrintLog(ASendLog: TSendLog);
+procedure TMainForm.PrintLog(const ASendLog: TSendLog);
 var
   LSendLog: PSendLog;
 begin
@@ -557,27 +563,27 @@ begin
   end;
 end;
 
-procedure TMainForm.PrintSendLog(ASendData: TSendData);
+procedure TMainForm.PrintSendLog(const ASendData: TSendData);
 var
   LSendLog: TSendLog;
 begin
   with LSendLog do
   begin
-    ImageState := Ord(ASendData.State) - $50;
+    ImageState := Ord(ASendData.State);
     Time := ASendData.Time;
     Address := ASendData.Address;
     case ASendData.State of
-      ssSuccess:
+      TSendState.Success:
         begin
           State := '成功';
           Information := '邮件已成功送达服务器';
         end;
-      ssRepeat:
+      TSendState.Repeated:
         begin
           State := '重复';
           Information := '此邮箱地址在：' + FormatDateTime('yyyy-mm-dd hh:nn:ss', ASendData.Time) + '已有发送记录';
         end;
-      ssError:
+      TSendState.Error:
         begin
           State := '失败';
           Information := '错误代码：' + ASendData.ErrorCode.ToString + '，' + ASendData.ErrorText;
@@ -589,13 +595,13 @@ begin
   PrintLog(LSendLog);
 end;
 
-procedure TMainForm.PrintSystemLog(AState, AInformation: string);
+procedure TMainForm.PrintSystemLog(const AState, AInformation: string);
 var
   LSendLog: TSendLog;
 begin
   with LSendLog do
   begin
-    ImageState := Ord(ssSystem) - $50;
+    ImageState := Ord(TSendState.System);
     Time := Now;
     Address := '系统';
     State := AState;
@@ -606,7 +612,7 @@ end;
 
 procedure TMainForm.ListViewKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
 begin
-  if Key = VK_DELETE then
+  if Assigned((Sender as TListView).Selected) and (Key = VK_DELETE) then
     (Sender as TListView).Items.Delete((Sender as TListView).ItemIndex);
 end;
 
@@ -638,13 +644,13 @@ begin
       begin
         case FSendLogs[i].ImageState of
           0:
-            Fill.Color := TAlphaColors.Green;
+            Fill.Color := TAlphaColors.Gray;
           1:
-            Fill.Color := TAlphaColors.Orange;
+            Fill.Color := TAlphaColors.Green;
           2:
             Fill.Color := TAlphaColors.Red;
           3:
-            Fill.Color := TAlphaColors.Gray;
+            Fill.Color := TAlphaColors.Orange;
         else
           Fill.Color := TAlphaColors.Null;
         end;
@@ -744,6 +750,7 @@ procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if Assigned(FSend) then
     FSend.Terminate;
+  FSend := nil;
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
@@ -776,11 +783,11 @@ begin
     BodyMemo.Text := Body;
   end;
 
-  if TFile.Exists('.\Config\Backup.smmad') then
+  if TFile.Exists('.\Data\Backup.smmad') then
   begin
     LStrings := TStringList.Create;
     LStrings.StrictDelimiter := True;
-    LStrings.LoadFromFile('.\Config\Backup.smmad', TEncoding.Unicode);
+    LStrings.LoadFromFile('.\Data\Backup.smmad', TEncoding.Unicode);
     AddMailAddresss(LStrings);
     LStrings.Free;
   end;
@@ -864,7 +871,7 @@ end;
 
 procedure TMainForm.UpdateAddress(SetSendButtonState: Boolean);
 begin
-  MailAddressListBox.Items.SaveToFile('.\Config\Backup.smmad', TEncoding.Unicode);
+  MailAddressListBox.Items.SaveToFile('.\Data\Backup.smmad', TEncoding.Unicode);
   SendAllLabel.Text := '已发送邮箱：' + GBaseDataModule.SendAll.ToString;
   SendTodayLabel.Text := '今日已发送邮箱：' + GBaseDataModule.SendAtDate.ToString;
   CountLabel.Text := '待发送邮箱：' + MailAddressListBox.Items.Count.ToString;
@@ -971,10 +978,17 @@ var
 begin
   with GMainForm do
   begin
+    for var i := 0 to ComponentCount - 1 do
+    begin
+      if (Components[i] is TListView) or (Components[i] is TListBox) or (Components[i] is THeader) or (Components[i] is TEdit) or (Components[i] is TCheckBox) or (Components[i] is TButton) or (Components[i] is TMenuBar) then
+        (Components[i] as TControl).Enabled := False;
+    end;
+    SendButton.Action := StopSendAction;
+    SendButton.Enabled := True;
     StateLabel.Text := '状态：正在验证';
     StateLabel.TextSettings.FontColor := TAlphaColors.Blue;
-    MailAddressListBox.ListItems[0].IsSelected := True;
-    MailAddressListBox.ListItems[0].IsSelected := False;
+    MailAddressListBox.ItemIndex := -1;
+    MailAddressListBox.ScrollToItem(MailAddressListBox.ListItems[0]);
     repeat
       Application.ProcessMessages;
       if not GBaseDataModule.Login then
@@ -1002,7 +1016,7 @@ begin
           end;
 
         LSendData := GBaseDataModule.Send(MailAddressListBox.Items[0]);
-        if LSendData.State = ssSuccess then
+        if LSendData.State in [TSendState.Success, TSendState.Error] then
           Inc(LCount);
 
         PrintSendLog(LSendData);
@@ -1015,6 +1029,12 @@ begin
     until True;
     StateLabel.Text := '状态：空闲';
     StateLabel.TextSettings.FontColor := TAlphaColors.Lightslategray;
+    for var i := 0 to ComponentCount - 1 do
+    begin
+      if (Components[i] is TListView) or (Components[i] is TListBox) or (Components[i] is THeader) or (Components[i] is TEdit) or (Components[i] is TCheckBox) or (Components[i] is TButton) or (Components[i] is TMenuBar) then
+        (Components[i] as TControl).Enabled := True;
+    end;
+    SendButton.Action := StartSendAction;
     UpdateAddress;
   end;
 end;

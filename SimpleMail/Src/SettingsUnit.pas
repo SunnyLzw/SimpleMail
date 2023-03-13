@@ -69,7 +69,7 @@ type
   public
     { Public declarations }
     procedure CreateTree;
-    procedure SwitchTabSheet(ATabItem: TTabItem);
+    procedure SwitchTabSheet(const ATabItem: TTabItem);
   end;
 
 implementation
@@ -375,7 +375,7 @@ begin
   end;
 end;
 
-procedure TSettingsForm.SwitchTabSheet(ATabItem: TTabItem);
+procedure TSettingsForm.SwitchTabSheet(const ATabItem: TTabItem);
 
   procedure ActiveParent(ATabItem: TTabItem);
   var

@@ -40,6 +40,106 @@ object MainForm: TMainForm
     Left = 400
     Top = 378
   end
+  object StateStatusBar: TStatusBar
+    Position.Y = 578.000000000000000000
+    ShowSizeGrip = True
+    Size.Width = 900.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 7
+    object StateFlowLayout: TFlowLayout
+      Align = Client
+      Padding.Left = 10.000000000000000000
+      Size.Width = 785.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Justify = Left
+      JustifyLastLine = Left
+      FlowDirection = LeftToRight
+      object Line10: TLine
+        LineType = Left
+        Position.X = 10.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+      object SendAllLabel: TLabel
+        Position.X = 15.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = #24050#21457#36865#37038#31665#65306'0'
+        TabOrder = 3
+      end
+      object Line11: TLine
+        LineType = Left
+        Position.X = 135.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+      object SendTodayLabel: TLabel
+        Position.X = 140.000000000000000000
+        Size.Width = 150.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = #20170#26085#24050#21457#36865#37038#31665#65306'0'
+        TabOrder = 1
+      end
+      object Line12: TLine
+        LineType = Left
+        Position.X = 290.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+      object CountLabel: TLabel
+        Position.X = 295.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = #24453#21457#36865#37038#31665#65306'0'
+        TabOrder = 0
+      end
+      object Line13: TLine
+        LineType = Left
+        Position.X = 415.000000000000000000
+        Size.Width = 5.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = claLightgray
+        Stroke.Thickness = 0.699999988079071000
+      end
+    end
+    object StateLabel: TLabel
+      Align = Right
+      StyledSettings = [Family, Size, Style]
+      Position.X = 790.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.FontColor = claLightslategray
+      Text = #29366#24577#65306#31354#38386
+      TabOrder = 0
+    end
+    object Line9: TLine
+      Align = Right
+      LineType = Left
+      Position.X = 785.000000000000000000
+      Size.Width = 5.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claLightgray
+      Stroke.Thickness = 0.699999988079071000
+    end
+  end
   object MainMenuBar: TMenuBar
     Size.Width = 900.000000000000000000
     Size.Height = 24.000000000000000000
@@ -69,6 +169,9 @@ object MainForm: TMainForm
         ImageIndex = -1
       end
     end
+    object PluginsMenuItem: TMenuItem
+      Text = #25554#20214'(&P)'
+    end
     object HelpMenuItem: TMenuItem
       Text = #24110#21161'(&H)'
       object AboutMenuItem: TMenuItem
@@ -85,7 +188,7 @@ object MainForm: TMainForm
     Padding.Left = 10.000000000000000000
     Padding.Top = 5.000000000000000000
     Padding.Right = 10.000000000000000000
-    Padding.Bottom = 10.000000000000000000
+    Padding.Bottom = 5.000000000000000000
     Size.Width = 900.000000000000000000
     Size.Height = 554.000000000000000000
     Size.PlatformDefault = False
@@ -112,10 +215,10 @@ object MainForm: TMainForm
           Size.PlatformDefault = False
           TabOrder = 0
           DisableFocusEffect = True
-          ItemHeight = 20.000000000000000000
           DefaultItemStyles.ItemStyle = ''
           DefaultItemStyles.GroupHeaderStyle = ''
           DefaultItemStyles.GroupFooterStyle = ''
+          OnKeyDown = MailAddressListBoxKeyDown
           Viewport.Width = 176.000000000000000000
           Viewport.Height = 276.000000000000000000
         end
@@ -328,7 +431,7 @@ object MainForm: TMainForm
     object BottomLayout: TLayout
       Align = Client
       Size.Width = 880.000000000000000000
-      Size.Height = 251.000000000000000000
+      Size.Height = 256.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
       object Splitter3: TSplitter
@@ -338,7 +441,7 @@ object MainForm: TMainForm
         MinSize = 200.000000000000000000
         Position.X = 550.000000000000000000
         Size.Width = 8.000000000000000000
-        Size.Height = 251.000000000000000000
+        Size.Height = 256.000000000000000000
         Size.PlatformDefault = False
         OnPainting = SplitterPainting
       end
@@ -346,7 +449,7 @@ object MainForm: TMainForm
         Align = Client
         Fill.Kind = None
         Size.Width = 550.000000000000000000
-        Size.Height = 251.000000000000000000
+        Size.Height = 256.000000000000000000
         Size.PlatformDefault = False
         Stroke.Thickness = 0.500000000000000000
         object BodyMemo: TMemo
@@ -358,11 +461,11 @@ object MainForm: TMainForm
           Position.X = 40.000000000000000000
           Position.Y = 32.000000000000000000
           Size.Width = 507.000000000000000000
-          Size.Height = 211.000000000000000000
+          Size.Height = 216.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 0
           Viewport.Width = 503.000000000000000000
-          Viewport.Height = 207.000000000000000000
+          Viewport.Height = 212.000000000000000000
         end
         object IsHtmlCheckBox: TCheckBox
           Anchors = [akTop, akRight]
@@ -410,7 +513,7 @@ object MainForm: TMainForm
         Fill.Kind = None
         Position.X = 558.000000000000000000
         Size.Width = 322.000000000000000000
-        Size.Height = 251.000000000000000000
+        Size.Height = 256.000000000000000000
         Size.PlatformDefault = False
         Stroke.Thickness = 0.500000000000000000
         OnResize = RectangleResize
@@ -420,7 +523,7 @@ object MainForm: TMainForm
           Enabled = True
           ImageIndex = -1
           Position.X = 8.000000000000000000
-          Position.Y = 221.000000000000000000
+          Position.Y = 226.000000000000000000
           TabOrder = 0
         end
         object ImportMailAddressButton: TButton
@@ -429,7 +532,7 @@ object MainForm: TMainForm
           Enabled = True
           ImageIndex = -1
           Position.X = 146.000000000000000000
-          Position.Y = 221.000000000000000000
+          Position.Y = 226.000000000000000000
           TabOrder = 1
         end
         object SendButton: TButton
@@ -438,7 +541,7 @@ object MainForm: TMainForm
           Enabled = True
           ImageIndex = -1
           Position.X = 234.000000000000000000
-          Position.Y = 221.000000000000000000
+          Position.Y = 226.000000000000000000
           TabOrder = 2
         end
         object AttachmentRectangle2: TRectangle
@@ -450,7 +553,7 @@ object MainForm: TMainForm
           Padding.Right = 1.000000000000000000
           Padding.Bottom = 1.000000000000000000
           Size.Width = 322.000000000000000000
-          Size.Height = 212.000000000000000000
+          Size.Height = 217.000000000000000000
           Size.PlatformDefault = False
           object AttachmentListView: TListView
             ItemAppearanceClassName = 'TDynamicAppearance'
@@ -460,7 +563,7 @@ object MainForm: TMainForm
             Align = Client
             PopupMenu = DisplayPopupMenu
             Size.Width = 320.000000000000000000
-            Size.Height = 180.000000000000000000
+            Size.Height = 185.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 1
             OnKeyDown = ListViewKeyDown
@@ -491,7 +594,7 @@ object MainForm: TMainForm
               LineType = Left
               Position.X = 79.500000000000000000
               Size.Width = 0.699999988079071000
-              Size.Height = 188.000000000000000000
+              Size.Height = 193.000000000000000000
               Size.PlatformDefault = False
               Stroke.Color = claLightgray
               Stroke.Thickness = 0.699999988079071000
@@ -501,7 +604,7 @@ object MainForm: TMainForm
               LineType = Left
               Position.X = -0.500000000000000000
               Size.Width = 0.699999988079071000
-              Size.Height = 188.000000000000000000
+              Size.Height = 193.000000000000000000
               Size.PlatformDefault = False
               Stroke.Color = claLightgray
               Stroke.Thickness = 0.699999988079071000
@@ -511,7 +614,7 @@ object MainForm: TMainForm
               LineType = Left
               Position.X = 299.500000000000000000
               Size.Width = 0.699999988079071000
-              Size.Height = 188.000000000000000000
+              Size.Height = 193.000000000000000000
               Size.PlatformDefault = False
               Stroke.Color = claLightgray
               Stroke.Thickness = 0.699999988079071000
@@ -564,106 +667,6 @@ object MainForm: TMainForm
       Size.Height = 8.000000000000000000
       Size.PlatformDefault = False
       OnPainting = SplitterPainting
-    end
-  end
-  object StateStatusBar: TStatusBar
-    Position.Y = 578.000000000000000000
-    ShowSizeGrip = True
-    Size.Width = 900.000000000000000000
-    Size.Height = 22.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 9
-    object StateFlowLayout: TFlowLayout
-      Align = Client
-      Padding.Left = 10.000000000000000000
-      Size.Width = 785.000000000000000000
-      Size.Height = 22.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 1
-      Justify = Left
-      JustifyLastLine = Left
-      FlowDirection = LeftToRight
-      object Line10: TLine
-        LineType = Left
-        Position.X = 10.000000000000000000
-        Size.Width = 5.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        Stroke.Color = claLightgray
-        Stroke.Thickness = 0.699999988079071000
-      end
-      object SendAllLabel: TLabel
-        Position.X = 15.000000000000000000
-        Size.Width = 120.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        Text = #24050#21457#36865#37038#31665#65306'0'
-        TabOrder = 3
-      end
-      object Line11: TLine
-        LineType = Left
-        Position.X = 135.000000000000000000
-        Size.Width = 5.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        Stroke.Color = claLightgray
-        Stroke.Thickness = 0.699999988079071000
-      end
-      object SendTodayLabel: TLabel
-        Position.X = 140.000000000000000000
-        Size.Width = 150.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        Text = #20170#26085#24050#21457#36865#37038#31665#65306'0'
-        TabOrder = 1
-      end
-      object Line12: TLine
-        LineType = Left
-        Position.X = 290.000000000000000000
-        Size.Width = 5.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        Stroke.Color = claLightgray
-        Stroke.Thickness = 0.699999988079071000
-      end
-      object CountLabel: TLabel
-        Position.X = 295.000000000000000000
-        Size.Width = 120.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        Text = #24453#21457#36865#37038#31665#65306'0'
-        TabOrder = 0
-      end
-      object Line13: TLine
-        LineType = Left
-        Position.X = 415.000000000000000000
-        Size.Width = 5.000000000000000000
-        Size.Height = 22.000000000000000000
-        Size.PlatformDefault = False
-        Stroke.Color = claLightgray
-        Stroke.Thickness = 0.699999988079071000
-      end
-    end
-    object StateLabel: TLabel
-      Align = Right
-      StyledSettings = [Family, Size, Style]
-      Position.X = 790.000000000000000000
-      Size.Width = 110.000000000000000000
-      Size.Height = 22.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.FontColor = claLightslategray
-      Text = #29366#24577#65306#31354#38386
-      TabOrder = 0
-    end
-    object Line9: TLine
-      Align = Right
-      LineType = Left
-      Position.X = 785.000000000000000000
-      Size.Width = 5.000000000000000000
-      Size.Height = 22.000000000000000000
-      Size.PlatformDefault = False
-      Stroke.Color = claLightgray
-      Stroke.Thickness = 0.699999988079071000
     end
   end
   object MainActionList: TActionList
@@ -737,48 +740,49 @@ object MainForm: TMainForm
             PNG = {
               89504E470D0A1A0A0000000D4948445200000040000000100806000000A6E779
               29000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
-              051D494441545847E5974F489C4714C0DF9B6F77E39FC6D4FF922856C554931C
-              941E5A09954829F45089E0C182C5B69078120F8162429BC626A16D9A9652F414
-              CDAD48E321289EDB063C988B908616114D8A5183694CB65169ECBADFBCBE373B
-              FBB97FBE355E3C94FE6099F7DE7CEF9BEFCDCC7B330BFF77D0B6DB0C55953AA0
-              7A88A01515D4020112C21C024DB88E3B081F2DACD827F784A99292D2EC60B007
-              105BF9E36A696D0D292F6F0E89260281C0E0B1859DC7CF3D77B734E4067A4043
-              EB96C65A1574D1019C037026026E74F0F137C792FC9326C019AE6A0750D7593C
-              10B3A4A037D708B3BAF5E97B37AC6547DCF1E26F0128E29C5C3D674D3B72E7D0
-              A176D0FA3A3A8EEFF844B4064A75372C2EFA8E7FA06FA65D81CBDFEFEFBF4991
-              B52C15E80E7F75D4F3F726C0063FCAA28A5932A209A8539FBAFFA3D57DD1370B
-              EA179E397745AE2C528DAAF5D16FA62303127C1871B4E005E33FE557E7037436
-              2C2D258D5FC0C1D3ED955178A3CCF327AD9B15E216214E5913C0ED150DAF9776
-              86BF3E62FC631320DB1ED52C4BFE2BCF704A4C22C29B46791E5977B373EAE0D4
-              EC43A3FBE08E154F28847745E619BBE5B43D6E311D3E986DEF38B3092BBF60DB
-              4ADB26E95180754E91BAD71617CDF8B9BDBCEDB3E5FB93579ED3A6C925882885
-              D3D664D884BFD773744EDD93ABF50FCD6C49CE73933178ADE1126FFB66698D21
-              3BB4DFA168AF917DD063852DF1E005964FE8B1A2F7AC9A86E47C62F0A4548BFC
-              44F6D12100C0E393377E288B73DE67DBCBCAA7062F6441CE7E17B5F137132005
-              4F5A3F2468EABEF799C888B4658C0C91F6F5A10BA0342ACE7D2627FA323F9727
-              6214F12A8D16BF64ECA970C1B39279B11B89E886070FFE88072EB2D8A4CF3E25
-              ABBBEDC305CF4A1EE12BF518FF59531204CAF8980930D5DE6256DBAE7462F06A
-              A8FA3C225E145940D487AD98043516BFEF00348A8C6F879FA9B627EB220701CA
-              F53EFA44E454A4DA5B515E5C15709C5FA6CBCA2A2570F9892C36E9B34F7100E0
-              8D2FD5DE8A1EF97D33FC4866D42332FEB182C1479D341AF42D09D804ADE92D6F
-              E5876AFA1383CF84BE519E1D45B86CD5345601CEE89B45691327479D1563202A
-              2714F28A9991D9665543A2830AB8BEABBC1B622900301F53D40975ADFA5391DD
-              EEFB3F4B8BD76A2E720E5F103919C7F824B16FF30CAF7485D5D228010C11D2F7
-              56F5D0B9B989EF32391F5FF9F84E48AC0102E7C2B68F4E9077892E211B332397
-              1C6905547889B7FB59919DE1EACB4AC179D391067A3E821E2F297D8ED8675503
-              8D1793FCAC6A504ABDA3C70B4F5AD5C0BB6BFB5DB606C4B77D3C1DD26A0080E7
-              E32895F42DBB213EA6990037E00EC8254764813BBFE46DFF134BBE39CB256DC3
-              0DAAA49524D0FD395C9DAD6A204DCD9C5D4D56F570A3F09DA48B5521180C0E98
-              4B8E606B8097F3A93AB309B0C115DE1B3FA0F5805C72AC6A482C7EA985F01F17
-              3654C031FE5E871AAAE9E0737E44C49825038BBC0EE5D8A54FCFFF602D7CEC15
-              1C59083BBFBE522027D436046E136FA908DFA5D38E220EB85FB5AD7E6E55B853
-              51D111261A79D14568925D8F1375352E2F7BE30BF9677FEF80A93F47122F42BE
-              D024111EEFFAEBCA51E3EF3D2CD75BB9E1C925C79A7C886EA4062FF091F2416A
-              F0028233E517BCC0C762B7150D72BD951B9EB9E4644056DE2F78C15C6FF98627
-              971C6B4A43563E317821BD7A0E571C7428D4CBE9D6BA7DD449C1C309B3ED3F9C
-              5B8ED9F686E90A199F7AE59CE76D7E583E500A9EFC19926DDFB8B4B4E3F8851F
-              CF1CE433A1970B4F6BECA8432E787A5E725EB6FDD32F5EDDD3EFFF8F01F02F47
-              B133A299067E380000000049454E44AE426082}
+              0537494441545847E5974D485C571480CFB96F66E24F93D4FF109554C5347F8B
+              48176D16954853E8A262C045048BB4900881E022D098D0A64993D0364D4B2966
+              A56657A47111147781B6812ECC46B0A16D089A14E30FA69A4CA352A7E3BC7B7A
+              CE9D3BCF79334FE3C645E907C33DE7DC77DE7DE7DE7BCEBD03FF77D0B6ABF454
+              9539A04E1141232AA80502248431041A721DF73A7C30316B9FDC14864B4BCB72
+              C3E15380D8C81F574B0B0B48DBB68D21D1502814BA7E6062FDF1F3CFDD2B8BB8
+              A153A0A1714563AD0ABBE8008E0138432137717DEEAB033E7FDF0438BD55CD00
+              EA068BDB93960C746C8130A75D9F7878D35AD6C51D2CF91A80E24ED3FC396B5A
+              97D1F2F266D0FA063A4EE0F844B4004AB51F9C9C0C1C7F7BE7FD66052E7F7FB0
+              7F8CE20B392AD41EFD62BFE7EF4D800DBE9F4595B4AC8926A0567DFCD1F7560F
+              44DF2ADC3BF1DCB927F2AE6255A71A9FFC6A3AD640828F22F617BE60FC67FCEA
+              0280D6835353BEF10B3978BA3BDB0F6FECF0FC49EB7A85B84288C3D604707756
+              C3EB65ADD12FF719FFE404C8B647F580A5E0956738257E4684378DB21C5F7473
+              F3F6C0F10733460FC01D28195208EF8ACC3376C7393AD7603A0230DBDE711EA4
+              ADFC846D77D9D6A72700163945F6BC363969C6CFEFE06D9F2BDFEF5F794E9B43
+              2E415C291CB126430CFE5ECCD3797B9E5EDB3B63664B729E9B3583D71A2EF3B6
+              AF97D61872235B1D4A741839003D50D4900A5E60F9B01E286EB16A1692F3E9C1
+              93520DF21339408710008F4FDEF8911CCEF9806D2F2B9F19BC9003795B5DD4C6
+              DF4C80143C698390A0A9FDE1272223D28A3132443AD0872E80D2A838F799BCC4
+              CBFCDC36111388D7A8BFE42563CF840B9E95CC8BDD785C1F7CFCF88F54E0228B
+              4DFAEC53B2BAAB3E5CF0ACE411BDBA17533F6BF241A08C8F990053ED2D66B5ED
+              4AA707AF7AAACF23E225910544BDDB8A3EA8AEE43D07A04E647C3BFA5C1D7DBA
+              287218A0426FA18F44CE44AABD15E5C55521C7F96964C78E5D12B8FC44169BF4
+              D9A73800F0C6976A6F458F82CEFBFCC8DAA82764FC9305838F3A6934E83B12B0
+              095AD35BDECAF7D45C4C0F7E2DF4CD8ADC04C215AB66310F705ADF2ACE9A3839
+              EAAC98045139918857CC8CCC36AB1AD21D54C80D5CE58D904C0180F1A4A20EAB
+              EEEA8F4576DB1FFD282D76D75CE21CBE20B21FC7F8F8D8123BCD2B5D69B52C4A
+              012384F4AD553D747E7EFABB4CCEA7563EB513D26B80C0B9B0EAA3D3E40DA24B
+              C9C6CCC825475A01155EE6ED7E5664A7B7FA8A5270DE7464819E8FA0074BCB96
+              113BAD6AA0C112929F550D4AA977F4605193550DBCBB56DF656B406ADBA7D221
+              AB0600783E8E52BE6FD908A931CD04B821B74B2E39220BDCF9396FFB1F580ACC
+              592E694B6E58F95692405FCCE3EA6C550369AAE7EC3A64550F3701DF48BA5815
+              C2E17097B9E408B60678399FA933318025AEF0DEF821ADBBE4926355437AF1CB
+              2C84FFB8B0A4428EF1F73A544FCD313EE7FB444C5AD66092D7A102DBF489F1EF
+              AC858FBDC27D1351E797570AE5845A85C03DC45B2ACE77E9ACA38803BEA88ECE
+              7F6A5518ADAC3C1625EA7BD145E836BB1E216AAB9B9EF6C6170ACEFE760C86FF
+              EC4BBF080542B789F048DB5F57F71B7FDFCCA8DEEA165C5EE99673DE9A32482C
+              11854FA6072FB803C557F9C675C6AA1B82CFD39948D35CB9550DA315152D2E40
+              B79CF3D6E443563E42743233F81405677E6F89E172B79CF3D6E443563EE2E893
+              A9E005DF04187A2B773A14E9E0746B5C3DEAA4E0E190D9F6EF8F4D276D9BC348
+              A58C4F1D72CEF336DF2D1F28054FFE0CC9B6AF9B9A5A77FCA20FEFEFE433A183
+              0B4F63F2A8432E787A5C725EB6FDB3CF5EDDD4EFFF8F01F02F23F62CDF6B18A9
+              6C0000000049454E44AE426082}
             FileName = 'C:\Users\Administrator\Desktop\Test\Bin\Res\State.png'
           end>
         Name = 'SendState'
@@ -804,14 +808,14 @@ object MainForm: TMainForm
         Layers = <
           item
             Name = 'SendState'
+            SourceRect.Left = 48.000000000000000000
+            SourceRect.Right = 64.000000000000000000
           end>
       end
       item
         Layers = <
           item
             Name = 'SendState'
-            SourceRect.Left = 16.000000000000000000
-            SourceRect.Right = 32.000000000000000000
           end>
       end
       item
@@ -826,8 +830,14 @@ object MainForm: TMainForm
         Layers = <
           item
             Name = 'SendState'
-            SourceRect.Left = 48.000000000000000000
-            SourceRect.Right = 64.000000000000000000
+            SourceRect.Left = 16.000000000000000000
+            SourceRect.Right = 32.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'BackGround'
           end>
       end
       item
@@ -842,14 +852,6 @@ object MainForm: TMainForm
         Layers = <
           item
             Name = 'BackGround'
-            SourceRect.Left = 32.000000000000000000
-            SourceRect.Right = 48.000000000000000000
-          end>
-      end
-      item
-        Layers = <
-          item
-            Name = 'BackGround'
             SourceRect.Left = 48.000000000000000000
             SourceRect.Right = 64.000000000000000000
           end>
@@ -858,6 +860,8 @@ object MainForm: TMainForm
         Layers = <
           item
             Name = 'BackGround'
+            SourceRect.Left = 32.000000000000000000
+            SourceRect.Right = 48.000000000000000000
           end>
       end>
     Left = 392

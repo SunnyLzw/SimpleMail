@@ -26,12 +26,12 @@ type
     IsHtml: Boolean;
   end;
 
-  TState = (ssSuccess = $50, ssRepeat, ssError, ssSystem);
+  TSendState = (System, Success, Error, Repeated);
 
   PSendData = ^TSendData;
 
   TSendData = record
-    State: TState;
+    State: TSendState;
     DisplayName, Address: string;
     ErrorCode: Integer;
     ErrorText: string;
